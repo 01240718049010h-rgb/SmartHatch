@@ -165,7 +165,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
                 <p>Te recomendamos cambiar tu contraseña tras el primer inicio de sesión para mantener la seguridad de tu cuenta.</p>
                 
                 <div style="text-align: center;">
-                    <a href="http://localhost:5000" class="btn">Acceder al Sistema</a>
+                    <a href="https://smarthatch.onrender.com" class="btn">Acceder al Sistema</a>
                 </div>
             </div>
             <div class="footer">
