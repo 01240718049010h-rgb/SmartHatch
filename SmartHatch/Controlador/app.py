@@ -21,22 +21,23 @@ vista_dir = os.path.join(base_dir, '..', 'Vista')
 app = Flask(__name__, 
             template_folder=os.path.join(vista_dir, 'templates'), 
             static_folder=os.path.join(vista_dir, 'static'))
-app.secret_key = 'super_clave_secreta_incubadora_iot'
 
-# URL de PostgreSQL en Render
-DATABASE_URL = "postgresql://smarthatch_db_user:8zdKUU03sgVXqKfInHKKIkjIxyLqs1sx@dpg-d6t0phfgi27c73dctv6g-a.virginia-postgres.render.com/smarthatch_db"
-
-
+# Ahora lee las variables desde Render (o desde un archivo .env si estás en local)
+app.secret_key = os.getenv('SECRET_KEY', 'super_clave_secreta_incubadora_iot') # El segundo valor es de respaldo por si falla
+# URL de PostgreSQL protegida
+DATABASE_URL = os.getenv('DATABASE_URL')
+# =================================================================
 def obtener_conexion():
     """Conexión a PostgreSQL"""
     conn = psycopg2.connect(DATABASE_URL)
     with conn.cursor() as cur:
         cur.execute("SET timezone = 'America/Merida';")
     return conn
+            
 def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen):
-    # CORREO Y CONTRASEÑA DE APLICACIÓN DE 16 LETRAS
-    remitente = "iot.incubator.chickpio@gmail.com"  
-    password_app = "qurcvltpzgrivggf"
+    # Ahora Python leerá los datos directamente desde el panel de Render
+    remitente = os.getenv('EMAIL')  
+    password_app = os.getenv('PASSWORD')
 
     # Construimos el mensaje
     msg = MIMEMultipart()
