@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SmartHatch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* === ESTILOS GENERALES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #0f2027;
+            /* Fondo oscuro moderno */
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            /* Evita el scroll */
+        }
+
+        /* === LADO IZQUIERDO: PANEL INFORMATIVO (40%) === */
+        .info-section {
+            width: 40%;
+            background: linear-gradient(135deg, rgba(0, 210, 211, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            /* Borde movido a la derecha */
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            position: relative;
+        }
+
+        /* Parte Superior Izquierda (Ajustes y Saludo) */
+        .info-header {
+            display: flex;
+            justify-content: flex-start;
+            /* Alineado a la izquierda */
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-header h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .settings-icon {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .settings-icon:hover {
+            color: #00d2d3;
+        }
+
+        /* Centro: Nombre y Logo */
+        .info-center {
+            text-align: center;
+        }
+
+        .info-center h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            background: -webkit-linear-gradient(#fff, #00d2d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-placeholder {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Parte Inferior: Enlaces */
+        .info-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            /* Alineado a la izquierda para balance visual */
+            gap: 10px;
+        }
+
+        .info-footer a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .info-footer a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* === LADO DERECHO: FORMULARIO (60%) === */
+        .login-section {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #00d2d3;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        select,
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        select option {
+            background: #0f2027;
+            color: white;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: #00d2d3;
+            box-shadow: 0 0 10px rgba(0, 210, 211, 0.2);
+        }
+
+        /* === PASSWORD TOGGLE STYLES === */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            padding-right: 45px;
+            /* Space for the icon */
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+
+        .toggle-password:hover {
+            color: #00d2d3;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-top: 10px;
+            color: #00d2d3;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+            color: white;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            margin-top: 30px;
+            background: #00d2d3;
+            color: #0f2027;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-login:hover {
+            background: white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsividad Básica */
+        @media (max-width: 900px) {
+            body {
+                /* Si estás en celular, queremos que el formulario aparezca arriba */
+                flex-direction: column-reverse;
+                overflow: auto;
+            }
+
+            .login-section,
+            .info-section {
+                width: 100%;
+                min-height: 50vh;
+                border-right: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="info-section">
+
+        <div class="info-header">
+            <i class="fa-solid fa-bars settings-icon"></i>
+            <h3>¡Un gusto!</h3>
+        </div>
+
+        <div class="info-center">
+            <h1>Proyect</h1>
+            <div class="logo-placeholder">
+                <i class="fa-solid fa-egg"></i>
+            </div>
+        </div>
+
+        <div class="info-footer">
+            <a href="autores.html" target="_blank">Autores</a>
+            <a href="ayuda.html" target="_blank">Ayuda</a>
+        </div>
+
+    </div>
+
+    <div class="login-section">
+        <div class="login-box">
+            <h2>Acceso al Sistema</h2>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div
+                style="background-color: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; text-align: center;">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form action="/login" method="POST">
+                <div class="input-group">
+                    <label for="rol">Tipo de Acceso:</label>
+                    <select id="rol" name="rol">
+                        <option value="investigador">Investigador</option>
+                        <option value="supervisor">Administrador</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Contraseña:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña"
+                            required>
+                        <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+                    <a href="#" class="forgot-password">¿No te acuerdas de tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-login">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function (e) {
+            // Alternar el tipo de input
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+
+            // Alternar el icono del ojo
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
+</body>
+
+</html>
