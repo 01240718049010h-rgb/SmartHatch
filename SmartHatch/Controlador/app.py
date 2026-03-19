@@ -18,13 +18,13 @@ import os
 base_dir = os.path.dirname(os.path.abspath(__file__))
 vista_dir = os.path.join(base_dir, '..', 'Vista')
 
-app = Flask(__name__, 
-            template_folder=os.path.join(vista_dir, 'templates'), 
+app = Flask(__name__,
+            template_folder=os.path.join(vista_dir, 'templates'),
             static_folder=os.path.join(vista_dir, 'static'))
 
-# Ahora lee las variables desde Render (o desde un archivo .env si estás en local)
-app.secret_key = os.getenv('SECRET_KEY', 'super_clave_secreta_incubadora_iot') # El segundo valor es de respaldo por si falla
-# URL de PostgreSQL protegida
+# Lee la llave secreta
+app.secret_key = os.getenv('SECRET_KEY')
+# Lee directamente la base de datos
 DATABASE_URL = os.getenv('DATABASE_URL')
 # =================================================================
 def obtener_conexion():
@@ -33,10 +33,10 @@ def obtener_conexion():
     with conn.cursor() as cur:
         cur.execute("SET timezone = 'America/Merida';")
     return conn
-            
+
 def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen):
     # Ahora Python leerá los datos directamente desde el panel de Render
-    remitente = os.getenv('EMAIL')  
+    remitente = os.getenv('EMAIL')
     password_app = os.getenv('PASSWORD')
 
     # Construimos el mensaje
@@ -53,7 +53,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
         <meta charset="UTF-8">
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
-            
+
             body {{
                 margin: 0;
                 padding: 0;
@@ -149,9 +149,9 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
             <div class="content">
                 <h2>¡Bienvenido, {nombre}!</h2>
                 <p>Has sido registrado exitosamente en el sistema de monitoreo <strong>Smart Hatch</strong>. Estamos emocionados de tenerte a bordo.</p>
-                
+
                 <p>A continuación, se presentan tus credenciales de acceso seguras para ingresar al panel:</p>
-                
+
                 <div class="credentials-box">
                     <div class="credential-item">
                         <span class="credential-label">Usuario:</span>
@@ -162,9 +162,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
                         <span class="credential-value">{password_gen}</span>
                     </div>
                 </div>
-                
-                <p>Te recomendamos cambiar tu contraseña tras el primer inicio de sesión para mantener la seguridad de tu cuenta.</p>
-                
+                <p>Te recomendamos tener guardado tu usuario y contraseña.</p>
                 <div style="text-align: center;">
                     <a href="https://smarthatch.onrender.com" class="btn">Acceder al Sistema</a>
                 </div>
@@ -210,7 +208,6 @@ def inicializar_tabla_lotes():
         conn.close()
     except Exception as e:
         print(f"Error al crear tabla LOTES: {e}")
-
 
 def inicializar_tabla_actuadores():
     """Crea la tabla ESTADO_ACTUADORES con valores por defecto."""
@@ -355,10 +352,9 @@ def admin():
             lista_usuarios = cursor.fetchall()
             cursor.execute("SELECT * FROM LOTES ORDER BY numero ASC")
             lista_lotes = cursor.fetchall()
-            
             cursor.execute("SELECT * FROM HISTORIAL_ACCIONES ORDER BY id DESC LIMIT 50")
             historial_acciones = cursor.fetchall()
-            
+
             cursor.close()
             conn.close()
             return render_template('panel-admin.html', nombre_usuario=session['nombre'], usuarios=lista_usuarios, lotes=lista_lotes, historial_acciones=historial_acciones)
@@ -388,13 +384,13 @@ def agregar_usuario():
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
-        
+
         # Insertar en PostgreSQL
         cursor.execute('''
             INSERT INTO USUARIOS (usuario, password, nombre, rol, estudios, correo)
             VALUES (%s, %s, %s, %s, %s, %s)
         ''', (nuevo_usuario, nueva_password, nombre, rol, estudios, correo))
-        
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -406,7 +402,7 @@ def agregar_usuario():
             flash(f'✅ Usuario {nuevo_usuario} creado. Las credenciales se han enviado a {correo}.')
         else:
             flash(f'⚠️ Usuario {nuevo_usuario} creado, pero hubo un error al enviar el correo. Contraseña generada: {nueva_password}')
-        
+
     except psycopg2.IntegrityError:
         flash('❌ Error: El usuario o correo ya existe en el sistema.')
     except Exception as e:
@@ -483,11 +479,11 @@ def restaurar_password(id):
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
-        
+
         # Primero obtenemos los datos del usuario para el correo
         cursor.execute('SELECT usuario, nombre, correo FROM USUARIOS WHERE id = %s', (id,))
         user_data = cursor.fetchone()
-        
+
         if user_data:
             usuario_bd = user_data[0]
             nombre_bd = user_data[1]
@@ -496,7 +492,7 @@ def restaurar_password(id):
             # Actualizamos la contraseña en la base de datos
             cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
             conn.commit()
-            
+
             # Intentamos enviar el correo si el usuario tiene uno registrado
             if correo_bd:
                 correo_enviado = enviar_correo_credenciales(correo_bd, nombre_bd, usuario_bd, nueva_password)
@@ -526,11 +522,11 @@ def dashboard():
         try:
             conn = obtener_conexion()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            
+
             # 1. Obtener la lectura más reciente
             cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY fecha_hora DESC LIMIT 1')
             ultima_lectura = cursor.fetchone()
-            
+
             # 2. Obtener las últimas 10 lecturas para la tabla del historial
             cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY fecha_hora DESC LIMIT 10')
             historial = cursor.fetchall()
@@ -538,7 +534,7 @@ def dashboard():
             # 3. Lotes activos (para el carrusel)
             cursor.execute("SELECT * FROM LOTES WHERE estado = 'activo' ORDER BY numero ASC")
             lotes = cursor.fetchall()
-            
+
             cursor.close()
             conn.close()
 
@@ -548,7 +544,7 @@ def dashboard():
                 # Extraemos los valores. Usamos float() por si la BD los devuelve como Decimal
                 temp = float(ultima_lectura['temperatura']) if ultima_lectura['temperatura'] else 0
                 hum = float(ultima_lectura['humedad']) if ultima_lectura['humedad'] else 0
-                
+
                 # Definir rangos críticos (Ejemplo: Pollo = 37.5°C a 38.0°C)
                 if temp < 36.5 or temp > 38.5:
                     alerta = f"¡ALERTA CRÍTICA! Temperatura fuera de rango: {temp}°C. Revise el sistema de calentamiento."
@@ -561,11 +557,11 @@ def dashboard():
                                    historial=historial,
                                    lotes=lotes,
                                    alerta=alerta)
-            
+
         except Exception as e:
             flash(f'Error al cargar los datos de los sensores: {e}')
             return render_template('dashboard-investigador.html', nombre_usuario=session['nombre'], historial=[], lotes=[])
-            
+
     flash('Debes iniciar sesión como investigador para ver esta página.')
     return redirect(url_for('index'))
 
