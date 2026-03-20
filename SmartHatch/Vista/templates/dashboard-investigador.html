@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
 
     <style>
         /* === ESTILOS GENERALES === */
@@ -427,7 +429,10 @@
                         <i class="fa-solid fa-temperature-half"></i>
                         <span class="device-name">Temperatura</span>
                     </div>
-                    <span class="device-value">{% if sensores.temperatura != '--' %}{{ sensores.temperatura }}°C{% else %}--{% endif %}</span>
+                    <span class="device-value" id="temperatura-actual-num">{% if sensores.temperatura != '--' %}{{ sensores.temperatura }}°C{% else %}--{% endif %}</span>
+                </div>
+                <div class="glass-panel" style="height: 180px; padding: 10px;">
+                    <canvas id="graficaTemperaturaCanvas"></canvas>
                 </div>
 
                 <div class="device-card" id="card-hum" onclick="abrirModal('Sensor', 'Humedad', '{{ sensores.humedad }}%')">
@@ -435,7 +440,10 @@
                         <i class="fa-solid fa-droplet"></i>
                         <span class="device-name">Humedad</span>
                     </div>
-                    <span class="device-value">{% if sensores.humedad != '--' %}{{ sensores.humedad }}%{% else %}--{% endif %}</span>
+                    <span class="device-value" id="humedad-actual-num">{% if sensores.humedad != '--' %}{{ sensores.humedad }}%{% else %}--{% endif %}</span>
+                </div>
+                <div class="glass-panel" style="height: 180px; padding: 10px;">
+                    <canvas id="graficaHumedadCanvas"></canvas>
                 </div>
 
                 <div class="device-card" id="card-dist" onclick="abrirModal('Sensor', 'Distancia', '{{ sensores.distancia }}cm')">
@@ -658,21 +666,111 @@
                 .catch(err => console.error('Error cargando historial:', err));
         }
 
-        // Auto-refresh sensores y actuadores cada 10 segundos
-        setInterval(function() {
-            fetch('/api/sensores')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) return;
-                    const cardTemp = document.querySelector('#card-temp .device-value');
-                    const cardHum = document.querySelector('#card-hum .device-value');
-                    const cardDist = document.querySelector('#card-dist .device-value');
-                    if (cardTemp && data.temperatura) cardTemp.textContent = data.temperatura + '°C';
-                    if (cardHum && data.humedad) cardHum.textContent = data.humedad + '%';
-                    if (cardDist && data.distancia) cardDist.textContent = data.distancia + 'cm';
-                })
-                .catch(err => console.error('Error refrescando sensores:', err));
+
+        // ==========================================
+        // CONFIGURACIÓN DINÁMICA DE GRÁFICOS (VIVO)
+        // ==========================================
+        const tempCtx = document.getElementById('graficaTemperaturaCanvas').getContext('2d');
+        const humCtx = document.getElementById('graficaHumedadCanvas').getContext('2d');
+        const tempActualNum = document.getElementById('temperatura-actual-num');
+        const humActualNum = document.getElementById('humedad-actual-num');
+
+        const liveChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { 
+                    type: 'time',
+                    time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#888', font: { size: 10 } }
+                },
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#888', font: { size: 10 } }
+                }
+            },
+            plugins: { legend: { display: false } },
+            animation: { duration: 500 }
+        };
+
+        const graficaTemperatura = new Chart(tempCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    borderColor: '#ff6b6b',
+                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: liveChartOptions
+        });
+
+        const graficaHumedad = new Chart(humCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    borderColor: '#00d2d3',
+                    backgroundColor: 'rgba(0, 210, 211, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: liveChartOptions
+        });
+
+        async function actualizarDatosSensores() {
+            try {
+                const response = await fetch('/api/sensores');
+                const data = await response.json();
+
+                if (data.error) return;
+
+                const temp = data.temperatura;
+                const hum = data.humedad;
+                const dist = data.distancia;
+                const time = data.fecha_hora;
+
+                // Actualizar números en las tarjetas
+                if (tempActualNum) tempActualNum.innerText = temp.toFixed(1) + '°C';
+                if (humActualNum) humActualNum.innerText = hum.toFixed(0) + '%';
                 
+                const cardDist = document.querySelector('#card-dist .device-value');
+                if (cardDist) cardDist.textContent = dist.toFixed(1) + 'cm';
+
+                // Actualizar Gráficos (Ventana deslizante de 20 puntos)
+                const MAX_PUNTOS = 20;
+
+                graficaTemperatura.data.labels.push(time);
+                graficaTemperatura.data.datasets[0].data.push(temp);
+                if (graficaTemperatura.data.labels.length > MAX_PUNTOS) {
+                    graficaTemperatura.data.labels.shift();
+                    graficaTemperatura.data.datasets[0].data.shift();
+                }
+                graficaTemperatura.update('quiet');
+
+                graficaHumedad.data.labels.push(time);
+                graficaHumedad.data.datasets[0].data.push(hum);
+                if (graficaHumedad.data.labels.length > MAX_PUNTOS) {
+                    graficaHumedad.data.labels.shift();
+                    graficaHumedad.data.datasets[0].data.shift();
+                }
+                graficaHumedad.update('quiet');
+
+            } catch (err) {
+                console.error('Error en fetch /api/sensores:', err);
+            }
+        }
+
+        // Refresco de Actuadores
+        function actualizarActuadores() {
             fetch('/api/actuadores')
                 .then(res => res.json())
                 .then(data => {
@@ -682,8 +780,27 @@
                     currentData.rotacion = data.rotacion;
                     actualizarUIActuadores();
                 })
-                .catch(err => console.error('Error:', err));
-        }, 10000);
+                .catch(err => console.error('Error en fetch /api/actuadores:', err));
+        }
+
+        // Inicialización y Temporizadores
+        actualizarDatosSensores();
+        actualizarActuadores();
+
+        let intervaloSensores = setInterval(actualizarDatosSensores, 5000);
+        let intervaloActuadores = setInterval(actualizarActuadores, 10000);
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(intervaloSensores);
+                clearInterval(intervaloActuadores);
+            } else {
+                actualizarDatosSensores();
+                actualizarActuadores();
+                intervaloSensores = setInterval(actualizarDatosSensores, 5000);
+                intervaloActuadores = setInterval(actualizarActuadores, 10000);
+            }
+        });
 
         function actualizarUIActuadores() {
             const tempVal = document.querySelector('#card-calefactor .device-value');
