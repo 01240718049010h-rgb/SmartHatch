@@ -122,16 +122,16 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     """
     msg.attach(MIMEText(cuerpo_html, 'html'))
 
-    try:
-        # Nos conectamos a los servidores de Google para enviar el correo
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls() # Modo seguro
+   try:
+        # Nos conectamos a Google y le damos MÁXIMO 8 segundos para responder
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=8) 
+        server.starttls() 
         server.login(remitente, password_app)
         server.send_message(msg)
         server.quit()
         return True
     except Exception as e:
-        print(f"Error enviando correo: {e}")
+        print(f"Error enviando correo (Cancelado para evitar caída): {e}")
         return False
 
 def inicializar_tabla_lotes():
