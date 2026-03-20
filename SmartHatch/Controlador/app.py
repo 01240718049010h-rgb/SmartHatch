@@ -7,12 +7,11 @@ from datetime import datetime, timezone
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import os
 
 # ==========================================
 # CONFIGURACIÓN
 # ==========================================
-
-import os
 
 # Define folders relative to this script's location
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +25,7 @@ app = Flask(__name__,
 app.secret_key = os.getenv('SECRET_KEY')
 # Lee directamente la base de datos
 DATABASE_URL = os.getenv('DATABASE_URL')
+
 # =================================================================
 def obtener_conexion():
     """Conexión a PostgreSQL"""
@@ -53,91 +53,38 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
         <meta charset="UTF-8">
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
-
             body {{
-                margin: 0;
-                padding: 0;
-                font-family: 'Montserrat', Arial, sans-serif;
-                background-color: #f4f7f6;
-                color: #333;
+                margin: 0; padding: 0; font-family: 'Montserrat', Arial, sans-serif;
+                background-color: #f4f7f6; color: #333;
             }}
             .container {{
-                max-width: 600px;
-                margin: 20px auto;
-                background-color: #ffffff;
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                max-width: 600px; margin: 20px auto; background-color: #ffffff;
+                border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }}
-            .header {{
-                background-color: #0f2027;
-                padding: 30px;
-                text-align: center;
-            }}
-            .header h1 {{
-                margin: 0;
-                font-size: 28px;
-                font-weight: 800;
-                color: #ffffff;
-                letter-spacing: 2px;
-            }}
-            .header span {{
-                color: #00d2d3;
-            }}
-            .content {{
-                padding: 40px;
-                line-height: 1.6;
-            }}
-            .content h2 {{
-                color: #0f2027;
-                font-size: 22px;
-                margin-top: 0;
-            }}
+            .header {{ background-color: #0f2027; padding: 30px; text-align: center; }}
+            .header h1 {{ margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: 2px; }}
+            .header span {{ color: #00d2d3; }}
+            .content {{ padding: 40px; line-height: 1.6; }}
+            .content h2 {{ color: #0f2027; font-size: 22px; margin-top: 0; }}
             .credentials-box {{
-                background-color: #f0fdfd;
-                border: 1px solid #00d2d3;
-                border-radius: 8px;
-                padding: 20px;
-                margin: 25px 0;
+                background-color: #f0fdfd; border: 1px solid #00d2d3;
+                border-radius: 8px; padding: 20px; margin: 25px 0;
             }}
-            .credential-item {{
-                margin: 10px 0;
-                font-size: 16px;
-            }}
-            .credential-label {{
-                font-weight: 600;
-                color: #555;
-                width: 100px;
-                display: inline-block;
-            }}
+            .credential-item {{ margin: 10px 0; font-size: 16px; }}
+            .credential-label {{ font-weight: 600; color: #555; width: 100px; display: inline-block; }}
             .credential-value {{
-                font-family: monospace;
-                background: #e0e0e0;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-weight: bold;
-                color: #0f2027;
+                font-family: monospace; background: #e0e0e0; padding: 2px 6px;
+                border-radius: 4px; font-weight: bold; color: #0f2027;
             }}
             .btn {{
-                display: inline-block;
-                padding: 15px 30px;
-                background-color: #00d2d3;
-                color: #0f2027 !important;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 800;
-                text-transform: uppercase;
-                font-size: 14px;
-                transition: 0.3s;
-                margin-top: 20px;
+                display: inline-block; padding: 15px 30px; background-color: #00d2d3;
+                color: #0f2027 !important; text-decoration: none; border-radius: 8px;
+                font-weight: 800; text-transform: uppercase; font-size: 14px;
+                transition: 0.3s; margin-top: 20px;
             }}
             .footer {{
-                background-color: #f9f9f9;
-                padding: 20px;
-                text-align: center;
-                font-size: 12px;
-                color: #999;
-                border-top: 1px solid #eeeeee;
+                background-color: #f9f9f9; padding: 20px; text-align: center;
+                font-size: 12px; color: #999; border-top: 1px solid #eeeeee;
             }}
         </style>
     </head>
@@ -149,9 +96,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
             <div class="content">
                 <h2>¡Bienvenido, {nombre}!</h2>
                 <p>Has sido registrado exitosamente en el sistema de monitoreo <strong>Smart Hatch</strong>. Estamos emocionados de tenerte a bordo.</p>
-
                 <p>A continuación, se presentan tus credenciales de acceso seguras para ingresar al panel:</p>
-
                 <div class="credentials-box">
                     <div class="credential-item">
                         <span class="credential-label">Usuario:</span>
@@ -191,6 +136,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
 
 def inicializar_tabla_lotes():
     """Crea la tabla LOTES si no existe."""
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -205,12 +151,15 @@ def inicializar_tabla_lotes():
         ''')
         conn.commit()
         cursor.close()
-        conn.close()
     except Exception as e:
         print(f"Error al crear tabla LOTES: {e}")
+    finally:
+        if conn is not None:
+            conn.close()
 
 def inicializar_tabla_actuadores():
     """Crea la tabla ESTADO_ACTUADORES con valores por defecto."""
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -227,12 +176,15 @@ def inicializar_tabla_actuadores():
             cursor.execute("INSERT INTO ESTADO_ACTUADORES (calefactor, ventilador, rotacion) VALUES (false, false, 45.0)")
         conn.commit()
         cursor.close()
-        conn.close()
     except Exception as e:
         print(f"Error al crear tabla ESTADO_ACTUADORES: {e}")
+    finally:
+        if conn is not None:
+            conn.close()
 
 def inicializar_tabla_acciones():
     """Crea la tabla HISTORIAL_ACCIONES si no existe."""
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -246,12 +198,15 @@ def inicializar_tabla_acciones():
         ''')
         conn.commit()
         cursor.close()
-        conn.close()
     except Exception as e:
         print(f"Error al crear tabla HISTORIAL_ACCIONES: {e}")
+    finally:
+        if conn is not None:
+            conn.close()
 
 def registrar_accion(usuario, accion):
     """Registra una acción en el historial de forma global."""
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -261,14 +216,15 @@ def registrar_accion(usuario, accion):
         )
         conn.commit()
         cursor.close()
-        conn.close()
     except Exception as e:
         print(f"Error al registrar acción: {e}")
+    finally:
+        if conn is not None:
+            conn.close()
 
 inicializar_tabla_lotes()
 inicializar_tabla_actuadores()
 inicializar_tabla_acciones()
-
 
 # ==========================================
 # RUTAS DE AUTENTICACIÓN
@@ -283,44 +239,54 @@ def index():
             return redirect(url_for('dashboard'))
     return render_template('login.html')
 
-
 @app.route('/login', methods=['POST'])
 def procesar_login():
     usuario_form = request.form['usuario']
     password_form = request.form['password']
     rol_form = request.form['rol']
 
-    conn = obtener_conexion()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cursor.execute('SELECT * FROM USUARIOS WHERE usuario = %s AND password = %s', (usuario_form, password_form))
-    user = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    conn = None
+    user = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor.execute('SELECT * FROM USUARIOS WHERE usuario = %s AND password = %s', (usuario_form, password_form))
+        user = cursor.fetchone()
+        cursor.close()
+    except Exception as e:
+        flash('Error al conectar con la base de datos.')
+        return redirect(url_for('index'))
+    finally:
+        if conn is not None:
+            conn.close()
 
     if user:
         rol_bd = user['rol']
         if (rol_form == 'supervisor' and rol_bd == 'admin') or (rol_form == 'investigador' and rol_bd == 'investigador'):
             # === NUEVO: Actualizar última conexión ===
+            conn_upd = None
             try:
                 conn_upd = obtener_conexion()
                 cursor_upd = conn_upd.cursor()
                 cursor_upd.execute('UPDATE USUARIOS SET ultima_conexion = CURRENT_TIMESTAMP WHERE id = %s', (user['id'],))
                 conn_upd.commit()
                 cursor_upd.close()
-                conn_upd.close()
             except Exception as e:
                 print(f"Error al actualizar ultima_conexion: {e}")
+            finally:
+                if conn_upd is not None:
+                    conn_upd.close()
 
             session['id'] = user['id']
             session['usuario'] = user['usuario']
             session['nombre'] = user['nombre']
             session['rol'] = rol_bd
 
+            registrar_accion(user['nombre'], 'Inició sesión')
+            
             if rol_bd == 'admin':
-                registrar_accion(user['nombre'], 'Inició sesión')
                 return redirect(url_for('admin'))
             else:
-                registrar_accion(user['nombre'], 'Inició sesión')
                 return redirect(url_for('dashboard'))
         else:
             flash('Error: El rol seleccionado no coincide con tus credenciales.')
@@ -329,14 +295,12 @@ def procesar_login():
         flash('Error: Usuario o contraseña incorrectos.')
         return redirect(url_for('index'))
 
-
 @app.route('/logout')
 def logout():
     if 'nombre' in session:
         registrar_accion(session['nombre'], 'Cerró sesión')
     session.clear()
     return redirect(url_for('index'))
-
 
 # ==========================================
 # PANEL DE ADMINISTRADOR
@@ -345,6 +309,7 @@ def logout():
 @app.route('/admin')
 def admin():
     if 'usuario' in session and session['rol'] == 'admin':
+        conn = None
         try:
             conn = obtener_conexion()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -354,17 +319,18 @@ def admin():
             lista_lotes = cursor.fetchall()
             cursor.execute("SELECT * FROM HISTORIAL_ACCIONES ORDER BY id DESC LIMIT 50")
             historial_acciones = cursor.fetchall()
-
             cursor.close()
-            conn.close()
+            
             return render_template('panel-admin.html', nombre_usuario=session['nombre'], usuarios=lista_usuarios, lotes=lista_lotes, historial_acciones=historial_acciones)
         except Exception as e:
             flash(f'Error al cargar datos: {e}')
             return render_template('panel-admin.html', nombre_usuario=session['nombre'], usuarios=[], lotes=[], historial_acciones=[])
+        finally:
+            if conn is not None:
+                conn.close()
 
     flash('Acceso denegado. Permisos de administrador requeridos.')
     return redirect(url_for('index'))
-
 
 @app.route('/agregar_usuario', methods=['POST'])
 def agregar_usuario():
@@ -381,6 +347,7 @@ def agregar_usuario():
     nuevo_usuario = f"U-{num_aleatorio}"
     nueva_password = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -393,8 +360,7 @@ def agregar_usuario():
 
         conn.commit()
         cursor.close()
-        conn.close()
-
+        
         # === NUEVO: ENVIAR EL CORREO ===
         correo_enviado = enviar_correo_credenciales(correo, nombre, nuevo_usuario, nueva_password)
         
@@ -407,9 +373,11 @@ def agregar_usuario():
         flash('❌ Error: El usuario o correo ya existe en el sistema.')
     except Exception as e:
         flash(f'❌ Error de base de datos: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
-
 
 @app.route('/editar_usuario/<int:id>', methods=['POST'])
 def editar_usuario(id):
@@ -422,6 +390,7 @@ def editar_usuario(id):
     estudios = request.form['estudios']
     correo = request.form['correo']
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -432,14 +401,16 @@ def editar_usuario(id):
         ''', (nombre, rol, estudios, correo, id))
         conn.commit()
         cursor.close()
-        conn.close()
+        
         registrar_accion(session['nombre'], f'Actualizó perfil del usuario ID {id}')
         flash('✅ Usuario actualizado correctamente.')
     except Exception as e:
         flash(f'❌ Error al actualizar el usuario: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
-
 
 @app.route('/eliminar_usuario/<int:id>', methods=['POST'])
 def eliminar_usuario(id):
@@ -451,20 +422,23 @@ def eliminar_usuario(id):
         flash('❌ Operación denegada: No puedes eliminar tu propia cuenta mientras estás en sesión.')
         return redirect(url_for('admin'))
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM USUARIOS WHERE id = %s', (id,))
         conn.commit()
         cursor.close()
-        conn.close()
+        
         registrar_accion(session['nombre'], f'Eliminó al usuario ID {id}')
         flash('🗑️ Usuario eliminado del sistema.')
     except Exception as e:
         flash(f'❌ Error al eliminar el usuario: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
-
 
 @app.route('/restaurar_password/<int:id>', methods=['POST'])
 def restaurar_password(id):
@@ -476,6 +450,7 @@ def restaurar_password(id):
     # Generar nueva contraseña aleatoria de 6 caracteres
     nueva_password = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -504,10 +479,11 @@ def restaurar_password(id):
                 flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
 
         cursor.close()
-        conn.close()
-        
     except Exception as e:
         flash(f'❌ Error al restaurar la contraseña: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
 
@@ -519,6 +495,7 @@ def restaurar_password(id):
 def dashboard():
     # Validar que sea un investigador
     if 'usuario' in session and session['rol'] == 'investigador':
+        conn = None
         try:
             conn = obtener_conexion()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -536,7 +513,6 @@ def dashboard():
             lotes = cursor.fetchall()
 
             cursor.close()
-            conn.close()
 
             # 4. LÓGICA DE ALERTAS 🚨
             alerta = None
@@ -561,10 +537,12 @@ def dashboard():
         except Exception as e:
             flash(f'Error al cargar los datos de los sensores: {e}')
             return render_template('dashboard-investigador.html', nombre_usuario=session['nombre'], historial=[], lotes=[])
+        finally:
+            if conn is not None:
+                conn.close()
 
     flash('Debes iniciar sesión como investigador para ver esta página.')
     return redirect(url_for('index'))
-
 
 # ==========================================
 # API ENDPOINTS (JSON) PARA GRÁFICAS
@@ -576,13 +554,13 @@ def api_sensores():
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY id DESC LIMIT 1')
         row = cursor.fetchone()
         cursor.close()
-        conn.close()
 
         if row:
             return jsonify({
@@ -594,7 +572,9 @@ def api_sensores():
         return jsonify({'temperatura': 0, 'humedad': 0, 'distancia': 0, 'fecha_hora': ''})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    finally:
+        if conn is not None:
+            conn.close()
 
 @app.route('/api/historial')
 def api_historial():
@@ -615,6 +595,7 @@ def api_historial():
     }
     intervalo = intervalos.get(rango, "INTERVAL '1 day'")
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -626,7 +607,6 @@ def api_historial():
         ''')
         rows = cursor.fetchall()
         cursor.close()
-        conn.close()
 
         datos = []
         for row in rows:
@@ -640,7 +620,9 @@ def api_historial():
         return jsonify(datos)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    finally:
+        if conn is not None:
+            conn.close()
 
 @app.route('/api/actuadores', methods=['GET', 'POST'])
 def api_actuadores():
@@ -648,6 +630,7 @@ def api_actuadores():
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
     
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -656,7 +639,7 @@ def api_actuadores():
             cursor.execute('SELECT calefactor, ventilador, rotacion FROM ESTADO_ACTUADORES ORDER BY id DESC LIMIT 1')
             row = cursor.fetchone()
             cursor.close()
-            conn.close()
+            
             if row:
                 return jsonify({
                     'calefactor': bool(row['calefactor']),
@@ -691,12 +674,13 @@ def api_actuadores():
                 
             conn.commit()
             cursor.close()
-            conn.close()
             return jsonify({'success': True, 'actuador': actuador, 'valor': valor})
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    finally:
+        if conn is not None:
+            conn.close()
 
 # ==========================================
 # GESTIÓN DE LOTES
@@ -708,6 +692,8 @@ def agregar_lote():
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
+    conn = None
+    siguiente_numero = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
@@ -722,17 +708,19 @@ def agregar_lote():
 
         conn.commit()
         cursor.close()
-        conn.close()
+        
         registrar_accion(session['nombre'], f'Creó un nuevo Lote (#{str(siguiente_numero).zfill(2)})')
         flash(f'✅ Lote #{str(siguiente_numero).zfill(2)} creado exitosamente.')
     except Exception as e:
         flash(f'❌ Error al crear lote: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     # Redirigir según el rol
     if session.get('rol') == 'admin':
         return redirect(url_for('admin'))
     return redirect(url_for('dashboard'))
-
 
 @app.route('/eliminar_lote/<int:id>', methods=['POST'])
 def eliminar_lote(id):
@@ -740,20 +728,23 @@ def eliminar_lote(id):
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM LOTES WHERE id = %s', (id,))
         conn.commit()
         cursor.close()
-        conn.close()
+        
         registrar_accion(session['nombre'], f'Eliminó el Lote ID ({id})')
         flash('🗑️ Lote eliminado del sistema.')
     except Exception as e:
         flash(f'❌ Error al eliminar lote: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
-
 
 @app.route('/marcar_lote/<int:id>', methods=['POST'])
 def marcar_lote(id):
@@ -763,20 +754,23 @@ def marcar_lote(id):
 
     estado = request.form.get('estado', 'empollado')
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
         cursor.execute('UPDATE LOTES SET estado = %s WHERE id = %s', (estado, id))
         conn.commit()
         cursor.close()
-        conn.close()
+        
         registrar_accion(session['nombre'], f'Marcó Lote ID ({id}) como {estado}')
         flash(f'✅ Lote marcado como {estado}.')
     except Exception as e:
         flash(f'❌ Error al actualizar lote: {e}')
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect(url_for('admin'))
-
 
 @app.route('/api/lotes')
 def api_lotes():
@@ -784,13 +778,13 @@ def api_lotes():
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
+    conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute("SELECT * FROM LOTES WHERE estado = 'activo' ORDER BY numero ASC")
         rows = cursor.fetchall()
         cursor.close()
-        conn.close()
 
         lotes = []
         ahora = datetime.now()
@@ -815,7 +809,9 @@ def api_lotes():
         return jsonify(lotes)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+    finally:
+        if conn is not None:
+            conn.close()
 
 # ==========================================
 # EJECUCIÓN DEL SERVIDOR
