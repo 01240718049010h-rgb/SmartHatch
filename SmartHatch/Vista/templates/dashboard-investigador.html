@@ -787,8 +787,8 @@
         actualizarDatosSensores();
         actualizarActuadores();
 
-        let intervaloSensores = setInterval(actualizarDatosSensores, 5000);
-        let intervaloActuadores = setInterval(actualizarActuadores, 10000);
+        let intervaloSensores = setInterval(actualizarDatosSensores, 15000);
+        let intervaloActuadores = setInterval(actualizarActuadores, 40000);
 
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
@@ -797,8 +797,8 @@
             } else {
                 actualizarDatosSensores();
                 actualizarActuadores();
-                intervaloSensores = setInterval(actualizarDatosSensores, 5000);
-                intervaloActuadores = setInterval(actualizarActuadores, 10000);
+                intervaloSensores = setInterval(actualizarDatosSensores, 15000);
+                intervaloActuadores = setInterval(actualizarActuadores, 40000);
             }
         });
 
