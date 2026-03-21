@@ -339,7 +339,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar">
         <div class="navbar-left">
             <i class="fa-solid fa-egg"></i>
@@ -351,10 +350,8 @@
         </div>
     </nav>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <div class="main-content">
 
-        <!-- Sistema de Alertas Críticas 🚨 -->
         {% if alerta %}
         <div style="background-color: #ff4757; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 1.2em; border: 2px solid white; animation: parpadeo 1.5s infinite; width: 100%;">
             ⚠️ {{ alerta }} ⚠️
@@ -385,7 +382,6 @@
                 </div>
                 {% endfor %}
 
-                <!-- Botón Agregar Nuevo Lote -->
                 <form action="/agregar_lote" method="POST" style="display:inline; flex-shrink:0;">
                     <button type="submit" class="egg-card add-btn" style="border:1px dashed rgba(255,255,255,0.5); cursor:pointer;">
                         <i class="fa-solid fa-plus"></i>
@@ -431,10 +427,6 @@
                     </div>
                     <span class="device-value" id="temperatura-actual-num">{% if sensores.temperatura != '--' %}{{ sensores.temperatura }}°C{% else %}--{% endif %}</span>
                 </div>
-                <div class="glass-panel" style="height: 180px; padding: 10px;">
-                    <canvas id="graficaTemperaturaCanvas"></canvas>
-                </div>
-
                 <div class="device-card" id="card-hum" onclick="abrirModal('Sensor', 'Humedad', '{{ sensores.humedad }}%')">
                     <div class="device-info">
                         <i class="fa-solid fa-droplet"></i>
@@ -442,10 +434,6 @@
                     </div>
                     <span class="device-value" id="humedad-actual-num">{% if sensores.humedad != '--' %}{{ sensores.humedad }}%{% else %}--{% endif %}</span>
                 </div>
-                <div class="glass-panel" style="height: 180px; padding: 10px;">
-                    <canvas id="graficaHumedadCanvas"></canvas>
-                </div>
-
                 <div class="device-card" id="card-dist" onclick="abrirModal('Sensor', 'Distancia', '{{ sensores.distancia }}cm')">
                     <div class="device-info">
                         <i class="fa-solid fa-ruler-vertical"></i>
@@ -531,11 +519,9 @@
         // ==========================================
 
         function seleccionarLote(cardElement) {
-            // Quitar .active de todas las tarjetas
             document.querySelectorAll('.egg-card').forEach(c => c.classList.remove('active'));
             cardElement.classList.add('active');
 
-            // Leer datos del lote seleccionado
             const fechaCreacion = new Date(cardElement.dataset.fecha);
             const diasIncubacion = parseInt(cardElement.dataset.diasIncubacion) || 21;
             const numero = cardElement.dataset.numero;
@@ -573,14 +559,12 @@
             }
         }
 
-        // Al cargar la página, auto-seleccionar el primer lote
         document.addEventListener('DOMContentLoaded', function() {
             const primerLote = document.querySelector('.egg-card.active');
             if (primerLote && primerLote.dataset.fecha) {
                 seleccionarLote(primerLote);
             }
 
-            // Actualizar timer cada minuto
             setInterval(function() {
                 const loteActivo = document.querySelector('.egg-card.active');
                 if (loteActivo && loteActivo.dataset.fecha) {
@@ -666,65 +650,12 @@
                 .catch(err => console.error('Error cargando historial:', err));
         }
 
+        // ==========================================
+        // ACTUALIZACIÓN DE DATOS (SENSORES Y ACTUADORES)
+        // ==========================================
 
-        // ==========================================
-        // CONFIGURACIÓN DINÁMICA DE GRÁFICOS (VIVO)
-        // ==========================================
-        const tempCtx = document.getElementById('graficaTemperaturaCanvas').getContext('2d');
-        const humCtx = document.getElementById('graficaHumedadCanvas').getContext('2d');
         const tempActualNum = document.getElementById('temperatura-actual-num');
         const humActualNum = document.getElementById('humedad-actual-num');
-
-        const liveChartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { 
-                    type: 'time',
-                    time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#888', font: { size: 10 } }
-                },
-                y: { 
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#888', font: { size: 10 } }
-                }
-            },
-            plugins: { legend: { display: false } },
-            animation: { duration: 500 }
-        };
-
-        const graficaTemperatura = new Chart(tempCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    borderColor: '#ff6b6b',
-                    backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0
-                }]
-            },
-            options: liveChartOptions
-        });
-
-        const graficaHumedad = new Chart(humCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    borderColor: '#00d2d3',
-                    backgroundColor: 'rgba(0, 210, 211, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0
-                }]
-            },
-            options: liveChartOptions
-        });
 
         async function actualizarDatosSensores() {
             try {
@@ -736,7 +667,6 @@
                 const temp = data.temperatura;
                 const hum = data.humedad;
                 const dist = data.distancia;
-                const time = data.fecha_hora;
 
                 // Actualizar números en las tarjetas
                 if (tempActualNum) tempActualNum.innerText = temp.toFixed(1) + '°C';
@@ -744,25 +674,6 @@
                 
                 const cardDist = document.querySelector('#card-dist .device-value');
                 if (cardDist) cardDist.textContent = dist.toFixed(1) + 'cm';
-
-                // Actualizar Gráficos (Ventana deslizante de 20 puntos)
-                const MAX_PUNTOS = 20;
-
-                graficaTemperatura.data.labels.push(time);
-                graficaTemperatura.data.datasets[0].data.push(temp);
-                if (graficaTemperatura.data.labels.length > MAX_PUNTOS) {
-                    graficaTemperatura.data.labels.shift();
-                    graficaTemperatura.data.datasets[0].data.shift();
-                }
-                graficaTemperatura.update('quiet');
-
-                graficaHumedad.data.labels.push(time);
-                graficaHumedad.data.datasets[0].data.push(hum);
-                if (graficaHumedad.data.labels.length > MAX_PUNTOS) {
-                    graficaHumedad.data.labels.shift();
-                    graficaHumedad.data.datasets[0].data.shift();
-                }
-                graficaHumedad.update('quiet');
 
             } catch (err) {
                 console.error('Error en fetch /api/sensores:', err);
@@ -820,57 +731,7 @@
                 rotVal.textContent = currentData.rotacion + '°';
                 rotVal.style.color = '#f39c12';
             }
-            
-            // Si el modal está abierto en actuadores, actualizarlo
-            const tipo = document.getElementById('modal-tipo').innerText;
-            const nombre = document.getElementById('modal-nombre').innerText;
-            if (tipo === 'Actuador') {
-                if (nombre.includes('Calefactor')) document.getElementById('modal-valor').innerText = currentData.calefactor ? 'ON' : 'OFF';
-                if (nombre.includes('Ventilador')) document.getElementById('modal-valor').innerText = currentData.ventilador ? 'ON' : 'OFF';
-                if (nombre.includes('Servomotor')) document.getElementById('modal-valor').innerText = currentData.rotacion + '°';
-            }
         }
-        
-        function ajustarActuador(accion) {
-            let nuevoValor = currentData.rotacion;
-            if (accion === 'subir') nuevoValor = Math.min(180, nuevoValor + 5);
-            else if (accion === 'bajar') nuevoValor = Math.max(0, nuevoValor - 5);
-            
-            const activeCard = document.querySelector('.egg-card.active');
-            let payload = { actuador: 'rotacion', valor: nuevoValor };
-            if (activeCard && activeCard.dataset.id) {
-                payload.lote_id = activeCard.dataset.id;
-            }
-
-            fetch('/api/actuadores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    currentData.rotacion = nuevoValor;
-                    document.getElementById('modal-valor').innerText = nuevoValor + '°';
-                    actualizarUIActuadores();
-                    
-                    // Actualizar el DOM del lote activo instantáneamente para dar feedback visual (optimistic UI)
-                    if (activeCard) {
-                        const now = new Date();
-                        const pad = (n) => String(n).padStart(2, '0');
-                        const formatted = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-                        activeCard.dataset.ultimoVolteo = formatted;
-                        document.getElementById('volteo-text').textContent = `Último volteo: ${formatted}`;
-                    }
-                }
-            })
-            .catch(err => alert("Error al ajustar rotación"));
-        }
-        
-        // Ejecutar primer fetch para pintar actuadores
-        fetch('/api/actuadores').then(res=>res.json()).then(data=>{
-            if(!data.error){ currentData=data; actualizarUIActuadores(); }
-        });
     </script>
 </body>
 </html>
