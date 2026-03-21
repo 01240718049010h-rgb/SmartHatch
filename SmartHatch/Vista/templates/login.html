@@ -269,8 +269,8 @@
         </div>
 
         <div class="info-footer">
-            <a href="/autores" target="_blank">Autores</a>
-            <a href="/informacion" target="_blank">Información</a>
+            <a href="{{ url_for('autores') }}" target="_blank">Autores</a>
+            <a href="{{ url_for('informacion') }}" target="_blank">Información</a>
         </div>
 
     </div>
@@ -290,7 +290,7 @@
             {% endif %}
             {% endwith %}
 
-            <form action="/login" method="POST">
+            <form action="{{ url_for('procesar_login') }}" method="POST">
                 <div class="input-group">
                     <label for="rol">Tipo de Acceso:</label>
                     <select id="rol" name="rol">
