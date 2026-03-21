@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autores | Smart Hatch</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        .header {
+            background-color: #0f2027;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        .header span {
+            color: #00d2d3;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title-section h2 {
+            color: #0f2027;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .autores-grid {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .autor-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid #00d2d3;
+            transition: transform 0.3s ease;
+        }
+
+        .autor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #999;
+            /* Si tienes fotos, cambia background-color por: background-image: url('tu-foto.jpg'); background-size: cover; */
+        }
+
+        .autor-card h3 {
+            color: #0f2027;
+            margin: 10px 0 5px;
+            font-size: 24px;
+        }
+
+        .autor-card p.rol {
+            color: #00d2d3;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+        }
+
+        .autor-card p.bio {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .social-links a {
+            text-decoration: none;
+            background: #0f2027;
+            color: #00d2d3;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .social-links a:hover {
+            background: #00d2d3;
+            color: #0f2027;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 40px;
+            text-decoration: none;
+            color: #0f2027;
+            font-weight: 600;
+        }
+
+        .btn-back:hover {
+            color: #00d2d3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Smart<span>Hatch</span></h1>
+    </div>
+    <div class="container">
+        <div class="title-section">
+            <h2>Mentes Detrás del Proyecto</h2>
+            <p>Conoce a los desarrolladores de esta solución IoT.</p>
+        </div>
+
+        <div class="autores-grid">
+            <div class="autor-card">
+                <div class="avatar">👨‍💻</div>
+                <h3>[Nombre Autor 1]</h3>
+                <p class="rol">Desarrollador Backend & Hardware</p>
+                <p class="bio">Encargado de la arquitectura de la base de datos, integración del ESP32 y programación en
+                    Python con Flask.</p>
+                <div class="social-links">
+                    <a href="https://github.com/tu-usuario" target="_blank">GitHub</a>
+                    <a href="https://linkedin.com/in/tu-perfil" target="_blank">LinkedIn</a>
+                </div>
+            </div>
+
+            <div class="autor-card">
+                <div class="avatar">👩‍💻</div>
+                <h3>[Nombre Autor 2]</h3>
+                <p class="rol">Desarrollador Frontend & UI/UX</p>
+                <p class="bio">Responsable del diseño de interfaces, dinamismo con JavaScript y la experiencia de
+                    usuario del dashboard.</p>
+                <div class="social-links">
+                    <a href="https://github.com/tu-usuario2" target="_blank">GitHub</a>
+                    <a href="https://linkedin.com/in/tu-perfil2" target="_blank">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/" class="btn-back">← Volver al inicio</a>
+        </div>
+    </div>
+</body>
+
+</html>
