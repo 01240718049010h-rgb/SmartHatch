@@ -302,6 +302,14 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+app.route('/autores')
+def autores():
+    return render_template('autores.html')
+
+@app.route('/informacion')
+def informacion():
+    return render_template('informacion.html')
+
 # ==========================================
 # PANEL DE ADMINISTRADOR
 # ==========================================
