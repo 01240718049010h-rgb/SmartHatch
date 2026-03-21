@@ -122,7 +122,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     """
     msg.attach(MIMEText(cuerpo_html, 'html'))
 
-   try:
+    try:
         # Nos conectamos a Google y le damos MÁXIMO 8 segundos para responder
         server = smtplib.SMTP('smtp.gmail.com', 587, timeout=8) 
         server.starttls() 
