@@ -28,703 +28,501 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
         }
-
-        .navbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .navbar-left i {
-            font-size: 1.2rem;
-            color: #00d2d3;
-        }
-
-        .navbar-brand {
-            font-size: 1.1rem;
-            font-weight: 800;
-            background: -webkit-linear-gradient(#fff, #00d2d3);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .navbar-user {
-            font-size: 0.85rem;
-            color: #aaa;
-        }
-
-        .navbar-user strong {
-            color: #fff;
-        }
-
+        .navbar h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+        .navbar h2 span { color: #00d2d3; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { font-weight: 600; font-size: 14px; }
         .btn-logout {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 71, 87, 0.15);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            color: #ff4757;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
+            padding: 8px 15px; background-color: #ff4757; color: white;
+            text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;
             transition: 0.3s;
         }
+        .btn-logout:hover { background-color: #ff6b81; }
 
-        .btn-logout:hover {
-            background: #ff4757;
-            color: white;
+        /* === LAYOUT PRINCIPAL === */
+        .main-container {
+            display: flex; flex: 1; overflow: hidden;
         }
 
-        /* === FLASH MESSAGES === */
-        .flash-container {
-            padding: 0 15px;
+        /* === SIDEBAR (TABS) === */
+        .sidebar {
+            width: 220px; background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex; flex-direction: column; padding: 20px 0;
             flex-shrink: 0;
         }
-
-        .flash-msg {
-            padding: 10px 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            text-align: center;
-            animation: fadeIn 0.4s ease;
+        .tab-btn {
+            background: transparent; color: #aaa; border: none;
+            padding: 15px 25px; text-align: left; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .tab-btn.active {
+            color: #00d2d3; background: rgba(0, 210, 211, 0.1);
+            border-right: 3px solid #00d2d3;
         }
 
-        .flash-msg.success {
-            background: rgba(0, 210, 211, 0.15);
-            border: 1px solid rgba(0, 210, 211, 0.3);
-            color: #00d2d3;
+        /* === CONTENIDO DE LAS PESTAÑAS === */
+        .content-area {
+            flex: 1; padding: 25px; overflow-y: auto;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
         }
-
-        .flash-msg.error {
-            background: rgba(255, 71, 87, 0.15);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            color: #ff4757;
-        }
-
-        .flash-msg.info {
-            background: rgba(243, 156, 18, 0.15);
-            border: 1px solid rgba(243, 156, 18, 0.3);
-            color: #f39c12;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* === MAIN CONTENT === */
-        .main-content {
-            display: flex;
-            gap: 15px;
-            padding: 15px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        /* Títulos */
-        h2 { color: #00d2d3; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .tab-content.active { display: block; }
         
-        /* Layout Principal: 2 Columnas */
-        .col { width: 50%; display: flex; flex-direction: column; gap: 15px; height: 100%; }
-        
-        /* Cuadrantes (25% cada uno) */
-        .quadrant {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* === 1. CUADRANTE: LOTES (Superior Izquierda) === */
-        .lote-list { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
-        .lote-item {
+        /* === ENCABEZADOS DE SECCIÓN === */
+        .section-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0, 210, 211, 0.1); border-radius: 8px;
-            padding: 12px 15px; margin-bottom: 10px; transition: 0.3s;
+            margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
         }
-        .lote-item:hover { background: rgba(0, 210, 211, 0.2); }
-        .lote-info { display: flex; gap: 20px; align-items: center; }
-        .lote-num { font-weight: 800; color: #00d2d3; font-size: 1.1rem; }
-        .lote-dias { color: #aaa; font-size: 0.9rem; }
-        .btn-opciones { background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; }
-        .btn-opciones:hover { color: #00d2d3; }
+        .section-header h3 { font-size: 20px; font-weight: 600; color: #00d2d3; }
 
-        /* === 2. CUADRANTE: USUARIOS (Inferior Izquierda) === */
-        .users-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-add { background: #00d2d3; color: #0f2027; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-add:hover { background: white; }
-        
-        .table-container { flex-grow: 1; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-        th { background: rgba(0,0,0,0.5); padding: 10px; color: #00d2d3; position: sticky; top: 0; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* === BOTONES === */
+        .btn {
+            padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600; transition: 0.3s;
+        }
+        .btn-primary { background: #00d2d3; color: #0f2027; }
+        .btn-primary:hover { background: #00e5e5; }
+        .btn-danger { background: #ff4757; color: white; }
+        .btn-danger:hover { background: #ff6b81; }
+        .btn-secondary { background: #576574; color: white; }
+        .btn-secondary:hover { background: #8395a7; }
+        .btn-warning { background: #feca57; color: #0f2027; }
+        .btn-warning:hover { background: #ff9f43; }
+
+        /* === TABLAS === */
+        table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background: rgba(0,0,0,0.4); font-size: 12px; text-transform: uppercase; color: #888; }
+        td { font-size: 13px; }
         tr:hover td { background: rgba(255,255,255,0.05); }
-        .badge-admin { background: rgba(255, 71, 87, 0.2); color: #ff4757; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; }
-        .badge-user { background: rgba(0, 210, 211, 0.2); color: #00d2d3; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; }
 
-        .action-btns {
-            display: flex;
-            gap: 6px;
+        .badge {
+            padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase;
         }
+        .badge-admin { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; }
+        .badge-invest { background: rgba(0, 210, 211, 0.2); color: #00d2d3; border: 1px solid #00d2d3; }
+        .badge-activo { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .badge-empollado { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
+        .badge-fallido { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
 
-        .action-btns button {
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.3s;
-        }
-
-        .action-btns button:hover {
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
-
-        .btn-edit { background-color: #0abde3; color: white; }
-        .btn-key { background-color: #f39c12; color: white; }
-        .btn-delete { background-color: #ff4757; color: white; }
-
-        /* === 3. CUADRANTE: SENSORES/ACTUADORES (Superior Derecha) === */
-        .devices-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; flex-grow: 1; overflow-y: auto; }
-        .device-card {
+        /* === FORMULARIOS (MODALES SIMULADOS) === */
+        .form-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;
+            border-radius: 8px; padding: 20px; margin-bottom: 20px;
         }
-        .device-card:hover { border-color: #00d2d3; transform: translateY(-3px); }
-        .device-card i { font-size: 1.8rem; color: #00d2d3; }
-        .device-name { font-size: 0.8rem; color: #aaa; }
-        .device-value { font-size: 1.2rem; font-weight: bold; }
-
-        /* === 4. CUADRANTE: HISTORIAL (Inferior Derecha) === */
-        .history-table td { color: #ccc; }
-        .history-action { color: white; font-weight: 600; }
-
-        /* === MODALES (Estilo general) === */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content { background: #142830; border-radius: 12px; border: 1px solid #00d2d3; padding: 25px; position: relative; width: 400px; }
-        .modal-content.large { width: 800px; display: flex; padding: 0; overflow: hidden; }
-        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; z-index: 10; }
-        .close-btn:hover { color: white; }
-
-        /* Formulario Modal Usuarios */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #333; background: rgba(0,0,0,0.5); color: white; }
-        .btn-submit { width: 100%; background: #00d2d3; border: none; padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 12px; color: #aaa; }
+        .form-control {
+            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: white; font-family: 'Montserrat', sans-serif;
+        }
+        .form-control:focus { outline: none; border-color: #00d2d3; }
 
-        /* Botones de Acción (Lotes) */
-        .btn-success { background: #2ecc71; border: none; padding: 10px; width: 100%; border-radius: 5px; color: white; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
-        .btn-danger { background: #ff4757; border: none; padding: 10px; width: 100%; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
+        /* === DASHBOARD GRIDS === */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 20px; text-align: center;
+        }
+        
+        /* Contenedor específico para Sensores (Gráficas grandes) */
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 20px;
+        }
+        .chart-container-large { position: relative; height: 250px; width: 100%; }
 
-        /* Zona de Riesgo (Modal Dispositivo) */
-        .modal-left { width: 40%; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
-        .modal-right { width: 60%; padding: 20px; }
-        .control-btns { display: flex; gap: 5px; margin-bottom: 20px; }
-        .control-btns button { flex: 1; padding: 8px; border: none; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; cursor: pointer; }
-        .danger-zone { border: 1px dashed #ff4757; padding: 15px; border-radius: 8px; background: rgba(255, 71, 87, 0.05); text-align: center; }
-        .danger-zone h5 { color: #ff4757; margin-bottom: 10px; }
-        .switch-btn { padding: 10px 20px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.3s; }
-        .switch-on { background: #ff4757; color: white; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
-        .switch-off { background: #333; color: #aaa; }
+        /* Contenedor específico para Actuadores (Sin gráficas, solo controles) */
+        .actuator-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 20px; text-align: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        .status-indicator {
+            display: inline-block; padding: 10px 20px; border-radius: 20px; font-weight: bold; margin: 15px 0;
+            font-size: 16px; width: 100%; max-width: 200px; text-align: center;
+        }
+        .status-on { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .status-off { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+        .status-warning { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
 
-        /* Scrollbars custom */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(0, 210, 211, 0.5); border-radius: 3px; }
+        .flash-messages { margin-bottom: 15px; }
+        .flash-msg {
+            padding: 10px 15px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 600;
+            background: rgba(0, 210, 211, 0.2); border: 1px solid #00d2d3; color: #00d2d3;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="navbar-left">
-            <i class="fa-solid fa-egg"></i>
-            <span class="navbar-brand">SmartHatch</span>
+    <div class="navbar">
+        <h2>Smart<span>Hatch</span> <span style="color:#aaa; font-size: 14px; font-weight: 400;">| Panel Admin</span></h2>
+        <div class="user-info">
+            <span><i class="fas fa-user-shield"></i> {{ nombre_usuario }}</span>
+            <a href="{{ url_for('logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
         </div>
-        <div class="navbar-right">
-            <span class="navbar-user"><i class="fa-solid fa-user-shield"></i> Supervisor: <strong>{{ nombre_usuario }}</strong></span>
-            <a href="/logout" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</a>
-        </div>
-    </nav>
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="flash-container">
-        {% for message in messages %}
-        <div class="flash-msg {% if '✅' in message or '🔑' in message %}success{% elif '❌' in message %}error{% else %}info{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
     </div>
-    {% endif %}
-    {% endwith %}
 
-    <div class="main-content">
+    <div class="main-container">
+        
+        <div class="sidebar">
+            <button class="tab-btn active" onclick="openTab('tab-dashboard')"><i class="fas fa-chart-line"></i> Dashboard</button>
+            <button class="tab-btn" onclick="openTab('tab-usuarios')"><i class="fas fa-users"></i> Gestor de Usuarios</button>
+            <button class="tab-btn" onclick="openTab('tab-lotes')"><i class="fas fa-egg"></i> Gestor de Lotes</button>
+            <button class="tab-btn" onclick="openTab('tab-historial')"><i class="fas fa-history"></i> Log de Acciones</button>
+        </div>
 
-        <div class="col">
-            <div class="quadrant">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 style="margin-bottom:0;">Gestión de Lotes</h2>
-                    <form action="/agregar_lote" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-add" style="font-size:0.8rem; padding:6px 14px;"><i class="fa-solid fa-plus"></i> Agregar</button>
+        <div class="content-area">
+            
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="flash-messages">
+                {% for message in messages %}
+                  <div class="flash-msg">{{ message }}</div>
+                {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <div id="tab-dashboard" class="tab-content active">
+                <div class="section-header">
+                    <h3><i class="fas fa-chart-line"></i> Monitoreo en Tiempo Real</h3>
+                </div>
+
+                <h4 style="margin-bottom: 15px; color: #aaa;">Lecturas de Sensores</h4>
+                <div class="dashboard-grid">
+                    <div class="sensor-card">
+                        <h3 style="text-align: center;">Temperatura</h3>
+                        <div class="chart-container-large">
+                            <canvas id="chart-temp"></canvas>
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <h3 style="text-align: center;">Humedad</h3>
+                        <div class="chart-container-large">
+                            <canvas id="chart-hum"></canvas>
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <h3 style="text-align: center;">Nivel de Agua (Distancia)</h3>
+                        <div class="chart-container-large">
+                            <canvas id="chart-dist"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 style="margin: 25px 0 15px 0; color: #aaa;">Control Manual Forzado de Actuadores</h4>
+                <div class="dashboard-grid">
+                    <div class="actuator-card">
+                        <h3>Calefactor</h3>
+                        <div class="status-indicator status-off" id="status-calefactor">Apagado</div>
+                        <button id="btn-calefactor" class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="toggleActuador('calefactor')">Forzar Encendido</button>
+                    </div>
+                    
+                    <div class="actuator-card">
+                        <h3>Ventilador</h3>
+                        <div class="status-indicator status-off" id="status-ventilador">Apagado</div>
+                        <button id="btn-ventilador" class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="toggleActuador('ventilador')">Forzar Encendido</button>
+                    </div>
+
+                    <div class="actuator-card">
+                        <h3>Motor de Rotación</h3>
+                        <div class="status-indicator status-off" id="status-rotacion">0.0°</div>
+                        <div style="margin-top:10px; display: flex; gap: 5px; width: 100%;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="setRotacion(45.0)">45°</button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="setRotacion(0.0)">0°</button>
+                            <button class="btn btn-primary" style="flex: 1;" onclick="setRotacion(-45.0)">-45°</button>
+                        </div>
+                        <button class="btn btn-warning" style="margin-top: 10px; width: 100%;" onclick="forzarGiroMotor()">
+                            <i class="fas fa-sync-alt"></i> Girar Ahora
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-usuarios" class="tab-content">
+                <div class="section-header">
+                    <h3><i class="fas fa-users"></i> Gestor de Usuarios</h3>
+                </div>
+
+                <div class="form-card">
+                    <h4 style="margin-bottom: 15px;">Registrar Nuevo Usuario</h4>
+                    <form action="{{ url_for('agregar_usuario') }}" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control" required placeholder="Ej. Dr. Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label>Correo Electrónico</label>
+                            <input type="email" name="correo" class="form-control" required placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Rol de Sistema</label>
+                            <select name="rol" class="form-control" required>
+                                <option value="investigador">Investigador</option>
+                                <option value="admin">Administrador (Supervisor)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nivel de Estudios / Especialidad</label>
+                            <input type="text" name="estudios" class="form-control" placeholder="Ej. Biólogo, Ing. Agrónomo">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Generar Credenciales y Enviar Correo</button>
+                        </div>
                     </form>
                 </div>
-                <div class="lote-list">
-                    {% for lote in lotes %}
-                    <div class="lote-item">
-                        <div class="lote-info">
-                            <span class="lote-num"><i class="fa-solid fa-egg"></i> Lote #{{ '%02d' % lote.numero }}</span>
-                            <span class="lote-dias" data-fecha="{{ lote.fecha_creacion }}" data-dias="{{ lote.dias_incubacion }}">
-                                Calculando...
-                            </span>
-                        </div>
-                        <form action="/eliminar_lote/{{ lote.id }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn-opciones" style="color:#ff4757;border:none;background:none;cursor:pointer;font-size:1.2rem;padding:5px;" onclick="return confirm('¿Eliminar Lote #{{ '%02d' % lote.numero }}?');">
-                                <i class="fa-solid fa-trash" style="pointer-events: none;"></i>
-                            </button>
-                        </form>
-                    </div>
-                    {% else %}
-                    <div style="text-align:center; padding:20px; color:#555;">
-                        <i class="fa-solid fa-egg" style="font-size:2rem; display:block; margin-bottom:10px;"></i>
-                        No hay lotes registrados. Presiona "Agregar" para crear uno.
-                    </div>
-                    {% endfor %}
-                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario (ID)</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Última Conexión</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td><strong>{{ u.usuario }}</strong></td>
+                            <td>{{ u.nombre }} <br><span style="font-size:11px; color:#888;">{{ u.estudios }}</span></td>
+                            <td>{{ u.correo }}</td>
+                            <td>
+                                {% if u.rol == 'admin' %}
+                                    <span class="badge badge-admin">Admin</span>
+                                {% else %}
+                                    <span class="badge badge-invest">Investigador</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.ultima_conexion.strftime('%Y-%m-%d %H:%M') if u.ultima_conexion else 'Nunca' }}</td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <form action="{{ url_for('restaurar_password', id=u.id) }}" method="POST" onsubmit="return confirm('¿Restaurar contraseña y enviar por correo a este usuario?');">
+                                        <button type="submit" class="btn btn-warning" title="Restaurar Contraseña"><i class="fas fa-key"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('eliminar_usuario', id=u.id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este usuario permanentemente?');">
+                                        <button type="submit" class="btn btn-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
-            <div class="quadrant">
-                <div class="users-header">
-                    <h2>Usuarios / Investigadores</h2>
-                    <button class="btn-add" onclick="abrirModal('modalUsuario')"><i class="fa-solid fa-user-plus"></i> Agregar</button>
+            <div id="tab-lotes" class="tab-content">
+                <div class="section-header">
+                    <h3><i class="fas fa-egg"></i> Gestor de Lotes de Incubación</h3>
+                    <form action="{{ url_for('agregar_lote') }}" method="POST">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Iniciar Nuevo Lote</button>
+                    </form>
                 </div>
-                <div class="table-container">
-                    <table>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lote #</th>
+                            <th>Fecha de Inicio</th>
+                            <th>Días de Incubación</th>
+                            <th>Estado Actual</th>
+                            <th>Progreso (Aprox)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lote in lotes %}
+                        <tr>
+                            <td><strong>{{ lote.numero|string|zfill(2) }}</strong></td>
+                            <td>{{ lote.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ lote.dias_incubacion }} días</td>
+                            <td>
+                                {% if lote.estado == 'activo' %}
+                                    <span class="badge badge-activo">Activo</span>
+                                {% elif lote.estado == 'empollado' %}
+                                    <span class="badge badge-empollado">Empollado Exitoso</span>
+                                {% else %}
+                                    <span class="badge badge-fallido">Fallido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lote.estado == 'activo' %}
+                                    <span class="lote-dias" data-fecha="{{ lote.fecha_creacion.isoformat() }}" data-dias="{{ lote.dias_incubacion }}">Calculando...</span>
+                                {% else %}
+                                    <span style="color:#aaa;">Finalizado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lote.estado == 'activo' %}
+                                <div style="display: flex; gap: 5px;">
+                                    <form action="{{ url_for('marcar_lote', id=lote.id) }}" method="POST">
+                                        <input type="hidden" name="estado" value="empollado">
+                                        <button type="submit" class="btn btn-primary" title="Marcar como Éxito" style="background:#2ecc71; color:white;"><i class="fas fa-check"></i></button>
+                                    </form>
+                                    <form action="{{ url_for('marcar_lote', id=lote.id) }}" method="POST">
+                                        <input type="hidden" name="estado" value="fallido">
+                                        <button type="submit" class="btn btn-danger" title="Marcar como Fallido"><i class="fas fa-times"></i></button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                    <form action="{{ url_for('eliminar_lote', id=lote.id) }}" method="POST" onsubmit="return confirm('¿Eliminar registro de este lote?');">
+                                        <button type="submit" class="btn btn-danger" title="Borrar Registro"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-historial" class="tab-content">
+                <div class="section-header">
+                    <h3><i class="fas fa-history"></i> Log del Sistema (Auditoría)</h3>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">
+                    <table style="background: transparent;">
                         <thead>
                             <tr>
-                                <th>Usuario</th>
-                                <th>Nombre</th>
-                                <th>Rol</th>
-                                <th>Última Conexión</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for u in usuarios %}
-                            <tr>
-                                <td>{{ u.usuario }}</td>
-                                <td>{{ u.nombre }}</td>
-                                <td>
-                                    {% if u.rol == 'admin' %}
-                                        <span class="badge-admin">Admin</span>
-                                    {% else %}
-                                        <span class="badge-user">Investigador</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if u.ultima_conexion %}
-                                        {{ u.ultima_conexion.strftime('%d/%m/%Y %H:%M') }}
-                                    {% else %}
-                                        Nunca
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="action-btns">
-                                        <button class="btn-edit" onclick="abrirModal('modalEditUser{{ u.id }}')" title="Editar">✏️</button>
-                                        <form action="/restaurar_password/{{ u.id }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Generar nueva contraseña para {{ u.usuario }}? La anterior dejará de funcionar.');">
-                                            <button type="submit" class="btn-key" title="Restaurar Contraseña">🔑</button>
-                                        </form>
-                                        <form action="/eliminar_usuario/{{ u.id }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar al usuario {{ u.usuario }}? Esta acción no se puede deshacer.');">
-                                            <button type="submit" class="btn-delete" title="Eliminar">🗑️</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: #aaa;">No hay usuarios registrados aún.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="quadrant">
-                <h2>Sensores y Actuadores</h2>
-                <div class="devices-grid">
-                    <div class="device-card" id="card-temp" onclick="abrirModalDispositivo('Temperatura', currentData.temp + '°C')">
-                        <i class="fa-solid fa-temperature-half"></i>
-                        <span class="device-name">Temp.</span>
-                        <span class="device-value">--</span>
-                    </div>
-                    <div class="device-card" id="card-hum" onclick="abrirModalDispositivo('Humedad', currentData.hum + '%')">
-                        <i class="fa-solid fa-droplet"></i>
-                        <span class="device-name">Humedad</span>
-                        <span class="device-value">--</span>
-                    </div>
-                    <div class="device-card" id="card-dist" onclick="abrirModalDispositivo('Distancia', currentData.dist + 'cm')">
-                        <i class="fa-solid fa-ruler-vertical"></i>
-                        <span class="device-name">Nivel Agua</span>
-                        <span class="device-value">--</span>
-                    </div>
-                    <div class="device-card" id="card-calefactor" onclick="abrirModalDispositivo('Calefactor', currentData.calefactor ? 'ON' : 'OFF')">
-                        <i class="fa-solid fa-fire"></i>
-                        <span class="device-name">Calefactor</span>
-                        <span class="device-value">--</span>
-                    </div>
-                    <div class="device-card" id="card-ventilador" onclick="abrirModalDispositivo('Ventilador', currentData.ventilador ? 'ON' : 'OFF')">
-                        <i class="fa-solid fa-fan"></i>
-                        <span class="device-name">Ventilador</span>
-                        <span class="device-value">--</span>
-                    </div>
-                    <div class="device-card" id="card-rotacion" onclick="abrirModalDispositivo('Rotación', currentData.rotacion + '°')">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                        <span class="device-name">Rotación</span>
-                        <span class="device-value">--</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="quadrant">
-                <h2>Historial de Registros</h2>
-                <div class="table-container">
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>Usuario</th>
-                                <th>Acción / Evento</th>
                                 <th>Fecha y Hora</th>
+                                <th>Usuario Responsable</th>
+                                <th>Acción Realizada</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for log in historial_acciones %}
                             <tr>
-                                <td>{{ log.usuario }}</td>
-                                <td class="history-action">{{ log.accion }}</td>
-                                <td>{{ log.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td style="color:#aaa; font-family: monospace;">{{ log.fecha_hora.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td style="color:#00d2d3; font-weight:600;">{{ log.usuario }}</td>
+                                <td>{{ log.accion }}</td>
                             </tr>
                             {% else %}
-                            <tr>
-                                <td colspan="3" style="text-align: center; color: #aaa;">No hay acciones registradas.</td>
-                            </tr>
+                            <tr><td colspan="3" style="text-align:center; color:#888;">No hay registros recientes.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
 
-    </div>
-
-    <div class="modal-overlay" id="modalLote">
-        <div class="modal-content">
-            <button class="close-btn" onclick="cerrarModal('modalLote')"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="text-align:center; margin-bottom:20px;">Opciones de Lote</h2>
-            <button class="btn-success"><i class="fa-solid fa-check"></i> Marcar como Empollado</button>
-            <button class="btn-danger"><i class="fa-solid fa-trash"></i> Eliminar / Fallido</button>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalUsuario">
-        <div class="modal-content">
-            <button class="close-btn" onclick="cerrarModal('modalUsuario')"><i class="fa-solid fa-xmark"></i></button>
-            <h2>Registrar Usuario</h2>
-            <form action="/agregar_usuario" method="POST">
-                <div class="form-group">
-                    <label>Nombre(s) y Apellidos</label>
-                    <input type="text" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Rol de Sistema</label>
-                    <select name="rol" required>
-                        <option value="investigador">Investigador (Usuario)</option>
-                        <option value="admin">Supervisor (Admin)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Estudios / Cargo</label>
-                    <input type="text" name="estudios" required>
-                </div>
-                <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" name="correo" required placeholder="Para enviar credenciales">
-                </div>
-                <p style="font-size:0.7rem; color:#aaa;">*El usuario y contraseña serán autogenerados por el sistema.</p>
-                <button type="submit" class="btn-submit">Guardar y Enviar Correo</button>
-            </form>
-        </div>
-    </div>
-
-    {% for u in usuarios %}
-    <div id="modalEditUser{{ u.id }}" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-btn" onclick="cerrarModal('modalEditUser{{ u.id }}')"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="margin-bottom: 15px; font-size: 1rem;">Editar Usuario: {{ u.usuario }}</h2>
-            <form action="/editar_usuario/{{ u.id }}" method="POST">
-                <div class="form-group">
-                    <label>Nombre(s) y Apellidos</label>
-                    <input type="text" name="nombre" value="{{ u.nombre }}" required>
-                </div>
-                <div class="form-group">
-                    <label>Rol de Sistema</label>
-                    <select name="rol" required>
-                        <option value="investigador" {% if u.rol == 'investigador' %}selected{% endif %}>Investigador (Usuario)</option>
-                        <option value="admin" {% if u.rol == 'admin' %}selected{% endif %}>Supervisor (Admin)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Estudios / Cargo</label>
-                    <input type="text" name="estudios" value="{{ u.estudios if u.estudios else '' }}" required>
-                </div>
-                <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" name="correo" value="{{ u.correo if u.correo else '' }}" required>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button type="button" onclick="cerrarModal('modalEditUser{{ u.id }}')" style="flex:1; background: #576574; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: 600;">Cancelar</button>
-                    <button type="submit" style="flex:1; background: #0abde3; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% endfor %}
-
-    <div class="modal-overlay" id="modalDevice">
-        <div class="modal-content large">
-            <button class="close-btn" onclick="cerrarModal('modalDevice')"><i class="fa-solid fa-xmark"></i></button>
-            
-            <div class="modal-left">
-                <h4 style="color:#aaa;">Administración</h4>
-                <h2 id="dev-name">Dispositivo</h2>
-                <h1 id="dev-value" style="color:#00d2d3; margin: 10px 0 20px 0; font-size:3rem;">--</h1>
-                
-                <div class="control-btns" id="control-btns-admin">
-                    <button onclick="ajustarActuadorAdmin('bajar')"><i class="fa-solid fa-arrow-down"></i> Bajar</button>
-                    <button onclick="ajustarActuadorAdmin('subir')"><i class="fa-solid fa-arrow-up"></i> Subir</button>
-                </div>
-
-                <div class="danger-zone">
-                    <h5><i class="fa-solid fa-triangle-exclamation"></i> Zona de Riesgo</h5>
-                    <p style="font-size:0.75rem; margin-bottom:10px; color:#ccc;">Forzar el estado de este elemento ignorará las reglas automáticas.</p>
-                    <button class="switch-btn switch-off" id="btn-force" onclick="toggleDispositivo()">Apagar Forzado</button>
-                </div>
-            </div>
-
-            <div class="modal-right">
-                <canvas id="adminChart"></canvas>
-            </div>
         </div>
     </div>
 
     <script>
-        // Control de Modales
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        // Pestañas
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
 
-        // Cerrar modal al hacer clic fuera del contenido
-        document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) {
-                    overlay.style.display = 'none';
-                }
-            });
-        });
-
-        // Objeto global para almacenar datos recientes
-        let currentData = { temp: '--', hum: '--', dist: '--', calefactor: false, ventilador: false, rotacion: 45.0 };
-        let sensorActualAdmin = '';
-
-        // Modal de Dispositivos (Gráfica y controles dinámicos)
-        let chartInst = null;
+        // ==========================================
+        // GRÁFICAS Y HARDWARE EN TIEMPO REAL
+        // ==========================================
         
-        function abrirModalDispositivo(nombre, valor) {
-            document.getElementById('dev-name').innerText = nombre;
-            document.getElementById('dev-value').innerText = valor;
-            abrirModal('modalDevice');
-            
-            sensorActualAdmin = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            
-            const btnForce = document.getElementById('btn-force');
-            const controlBtns = document.getElementById('control-btns-admin');
+        let chartTemp, chartHum, chartDist;
+        const maxDataPoints = 20;
 
-            // 1. Mostrar/Ocultar botones de Subir y Bajar
-            // Solo el motor de rotación conserva la capacidad de subir y bajar numéricamente
-            if (sensorActualAdmin === 'rotacion') {
-                controlBtns.style.display = 'flex'; 
-            } else {
-                controlBtns.style.display = 'none'; // Sensores, Calefactor y Ventilador NO tienen subir/bajar
-            }
+        // Datos para SENSORES
+        const dataTemp = [], dataHum = [], dataDist = [], labelsSensores = [];
 
-            // 2. Lógica del botón ON/OFF (Se muestra para TODOS)
-            let isON = true;
-            if (['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
-                // Si es un actuador real, leemos su estado desde la Base de Datos
-                isON = currentData[sensorActualAdmin];
-            } else {
-                // Si es un sensor (o la rotación), simulamos un estado "ON/OFF" local (visual) 
-                // ya que los sensores no se "apagan" desde la base de datos
-                isON = currentData[sensorActualAdmin + '_on'] !== false; 
-            }
+        // Estado actual de actuadores
+        let currentData = {
+            calefactor: false,
+            ventilador: false,
+            rotacion: 0.0
+        };
 
-            // Pintar el botón según el estado
-            actualizarEstiloBotonToggle(btnForce, isON);
+        window.onload = function() {
+            // Inicializar gráficas SENSORES
+            const commonOptions = {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 0 },
+                scales: { 
+                    x: { ticks: { color: '#aaa', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                },
+                plugins: { legend: { display: false } }
+            };
 
-            renderizarGrafica(nombre);
-        }
+            const ctxTemp = document.getElementById('chart-temp').getContext('2d');
+            chartTemp = new Chart(ctxTemp, {
+                type: 'line',
+                data: { labels: labelsSensores, datasets: [{ label: 'Temp (°C)', data: dataTemp, borderColor: '#ff4757', backgroundColor: 'rgba(255, 71, 87, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] },
+                options: commonOptions
+            });
 
-        function toggleDispositivo() {
-            const btn = document.getElementById('btn-force');
-            const nuevoEstado = btn.classList.contains('switch-off'); // true = Encender, false = Apagar
+            const ctxHum = document.getElementById('chart-hum').getContext('2d');
+            chartHum = new Chart(ctxHum, {
+                type: 'line',
+                data: { labels: labelsSensores, datasets: [{ label: 'Humedad (%)', data: dataHum, borderColor: '#00d2d3', backgroundColor: 'rgba(0, 210, 211, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] },
+                options: commonOptions
+            });
 
-            if (['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
-                // Actuadores Reales -> Enviamos la orden al servidor (Python)
-                fetch('/api/actuadores', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ actuador: sensorActualAdmin, valor: nuevoEstado })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.success) {
-                        currentData[sensorActualAdmin] = nuevoEstado;
-                        actualizarEstiloBotonToggle(btn, nuevoEstado);
-                        document.getElementById('dev-value').innerText = nuevoEstado ? 'ON' : 'OFF';
-                        actualizarUIActuadores();
-                    }
-                })
-                .catch(err => console.error("Error toggling actuador:", err));
-            } else {
-                // Sensores y Rotación -> Solo cambia visualmente (simulación para el Admin)
-                currentData[sensorActualAdmin + '_on'] = nuevoEstado;
-                actualizarEstiloBotonToggle(btn, nuevoEstado);
-            }
-        }
+            const ctxDist = document.getElementById('chart-dist').getContext('2d');
+            chartDist = new Chart(ctxDist, {
+                type: 'line',
+                data: { labels: labelsSensores, datasets: [{ label: 'Nivel/Dist (cm)', data: dataDist, borderColor: '#feca57', backgroundColor: 'rgba(254, 202, 87, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] },
+                options: commonOptions
+            });
 
-        // Función de apoyo para pintar el botón verde/rojo
-        function actualizarEstiloBotonToggle(btn, estadoON) {
-            if (estadoON) {
-                btn.className = 'switch-btn switch-on';
-                btn.innerText = "Apagar Forzado";
-            } else {
-                btn.className = 'switch-btn switch-off';
-                btn.innerText = "Encendido Forzado";
-            }
-        }
-
-        function ajustarActuadorAdmin(accion) {
-            // Seguridad: Solo permite ejecutar esta función si estamos en el panel de rotación
-            if (sensorActualAdmin !== 'rotacion') {
-                return; 
-            }
-            
-            let nuevoValor = currentData.rotacion || 45.0;
-            if (accion === 'subir') nuevoValor = Math.min(180, nuevoValor + 5);
-            else if (accion === 'bajar') nuevoValor = Math.max(0, nuevoValor - 5);
-            
-            fetch('/api/actuadores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actuador: 'rotacion', valor: nuevoValor })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    currentData.rotacion = nuevoValor;
-                    document.getElementById('dev-value').innerText = nuevoValor + '°';
-                    actualizarUIActuadores();
-                }
-            })
-            .catch(err => console.error("Error ajustando rotacion:", err));
-        }
-
-        // Gráfica Chart.js con datos reales de la API
-        function renderizarGrafica(label) {
-            const ctx = document.getElementById('adminChart').getContext('2d');
-            if(chartInst) chartInst.destroy();
-            
-            let querySensor = sensorActualAdmin;
-            if (!['temperatura', 'humedad', 'distancia'].includes(querySensor)) {
-                querySensor = 'temperatura'; // Default visual para actuadores
-            }
-
+            // Cargar historial de sensores al iniciar
             fetch('/api/historial?rango=dia')
                 .then(res => res.json())
                 .then(data => {
-                    const labels = data.map(d => d.fecha_hora.split(' ')[1] || d.fecha_hora);
-                    const valores = data.map(d => d[querySensor] || 0);
-
-                    chartInst = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels.length > 0 ? labels : ['Sin datos'],
-                            datasets: [{
-                                label: label,
-                                data: valores.length > 0 ? valores : [0],
-                                borderColor: '#00d2d3', backgroundColor: 'rgba(0, 210, 211, 0.2)',
-                                borderWidth: 2, tension: 0.3, fill: true, pointRadius: 0
-                            }]
-                        },
-                        options: { 
-                            responsive: true, 
-                            maintainAspectRatio: false, 
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa' } },
-                                x: { grid: { display: false }, ticks: { color: '#aaa', maxTicksLimit: 8 } }
-                            }
-                        }
+                    if (data.error) return;
+                    const recentData = data.slice(-maxDataPoints);
+                    recentData.forEach(row => {
+                        const t = row.fecha_hora.split(' ')[1]; // Solo la hora
+                        labelsSensores.push(t);
+                        dataTemp.push(row.temperatura);
+                        dataHum.push(row.humedad);
+                        dataDist.push(row.distancia);
                     });
-                })
-                .catch(err => console.error("Error historial:", err));
-        }
+                    chartTemp.update(); chartHum.update(); chartDist.update();
+                });
 
-        function actualizarUIActuadores() {
-            document.querySelector('#card-calefactor .device-value').textContent = currentData.calefactor ? 'ON' : 'OFF';
-            document.querySelector('#card-calefactor .device-value').style.color = currentData.calefactor ? '#00d2d3' : '#aaa';
-            
-            document.querySelector('#card-ventilador .device-value').textContent = currentData.ventilador ? 'ON' : 'OFF';
-            document.querySelector('#card-ventilador .device-value').style.color = currentData.ventilador ? '#00d2d3' : '#aaa';
-            
-            document.querySelector('#card-rotacion .device-value').textContent = currentData.rotacion + '°';
-        }
+            // Cargar estado inicial de actuadores
+            fetchActuadores();
+        };
 
-        // Polling de Sensores y Actuadores
         function fetchSensores() {
             fetch('/api/sensores')
                 .then(res => res.json())
                 .then(data => {
                     if (data.error) return;
-                    currentData.temp = data.temperatura || '--';
-                    currentData.hum = data.humedad || '--';
-                    currentData.dist = data.distancia || '--';
                     
-                    document.querySelector('#card-temp .device-value').textContent = currentData.temp + '°C';
-                    document.querySelector('#card-hum .device-value').textContent = currentData.hum + '%';
-                    document.querySelector('#card-dist .device-value').textContent = currentData.dist + 'cm';
+                    const timeStr = data.fecha_hora ? data.fecha_hora.split(' ')[1] : new Date().toLocaleTimeString();
+                    
+                    if (labelsSensores.length >= maxDataPoints) {
+                        labelsSensores.shift();
+                        dataTemp.shift(); dataHum.shift(); dataDist.shift();
+                    }
+                    
+                    labelsSensores.push(timeStr);
+                    dataTemp.push(data.temperatura);
+                    dataHum.push(data.humedad);
+                    dataDist.push(data.distancia);
+                    
+                    chartTemp.update(); chartHum.update(); chartDist.update();
                 })
                 .catch(err => console.error('Error fetching sensores:', err));
-                
+        }
+
+        // --- Lógica de Actuadores (Controles Visuales) ---
+        function fetchActuadores() {
             fetch('/api/actuadores')
                 .then(res => res.json())
                 .then(data => {
@@ -737,9 +535,105 @@
                 .catch(err => console.error('Error fetching actuadores:', err));
         }
 
-        // Iniciar polling auto-refresh
-        fetchSensores();
-        setInterval(fetchSensores, 20000);
+        function actualizarUIActuadores() {
+            // CALEFACTOR
+            const elCalefactor = document.getElementById('status-calefactor');
+            const btnCalefactor = document.getElementById('btn-calefactor');
+            if (currentData.calefactor) {
+                elCalefactor.textContent = 'Encendido';
+                elCalefactor.className = 'status-indicator status-on';
+                btnCalefactor.textContent = 'Forzar Apagado';
+                btnCalefactor.className = 'btn btn-danger';
+            } else {
+                elCalefactor.textContent = 'Apagado';
+                elCalefactor.className = 'status-indicator status-off';
+                btnCalefactor.textContent = 'Forzar Encendido';
+                btnCalefactor.className = 'btn btn-primary';
+            }
+
+            // VENTILADOR
+            const elVentilador = document.getElementById('status-ventilador');
+            const btnVentilador = document.getElementById('btn-ventilador');
+            if (currentData.ventilador) {
+                elVentilador.textContent = 'Encendido';
+                elVentilador.className = 'status-indicator status-on';
+                btnVentilador.textContent = 'Forzar Apagado';
+                btnVentilador.className = 'btn btn-danger';
+            } else {
+                elVentilador.textContent = 'Apagado';
+                elVentilador.className = 'status-indicator status-off';
+                btnVentilador.textContent = 'Forzar Encendido';
+                btnVentilador.className = 'btn btn-primary';
+            }
+
+            // ROTACION
+            const elRotacion = document.getElementById('status-rotacion');
+            elRotacion.textContent = currentData.rotacion + '°';
+            if (currentData.rotacion > 0) elRotacion.className = 'status-indicator status-on';
+            else if (currentData.rotacion < 0) elRotacion.className = 'status-indicator status-warning';
+            else elRotacion.className = 'status-indicator status-off';
+        }
+
+        function toggleActuador(actuador) {
+            const nuevoEstado = !currentData[actuador];
+            fetch('/api/actuadores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actuador: actuador, valor: nuevoEstado })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    currentData[actuador] = nuevoEstado;
+                    actualizarUIActuadores();
+                }
+            })
+            .catch(err => console.error('Error toggling actuador:', err));
+        }
+
+        function setRotacion(grados) {
+            fetch('/api/actuadores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actuador: 'rotacion', valor: grados })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    currentData.rotacion = grados;
+                    actualizarUIActuadores();
+                }
+            })
+            .catch(err => console.error('Error setting rotacion:', err));
+        }
+
+        function forzarGiroMotor() {
+            const btn = event.currentTarget;
+            const textOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando orden...';
+            btn.disabled = true;
+
+            fetch('/api/volteo_manual', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert('✅ Orden de giro enviada. El motor se activará.');
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('Error de conexión al forzar el giro.'))
+            .finally(() => {
+                btn.innerHTML = textOriginal;
+                btn.disabled = false;
+            });
+        }
+
+        // Iniciar polling auto-refresh para sensores y actuadores
+        setInterval(() => {
+            fetchSensores();
+            fetchActuadores(); // Sincroniza estado de botones si otro usuario lo cambió
+        }, 20000);
 
         // Auto-ocultar flash messages después de 8 segundos
         setTimeout(function() {
