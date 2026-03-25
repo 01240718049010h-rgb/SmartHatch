@@ -340,7 +340,12 @@ def admin():
             
             return render_template('panel-admin.html', nombre_usuario=session['nombre'], usuarios=lista_usuarios, lotes=lista_lotes, historial_acciones=historial_acciones)
         except Exception as e:
-            flash(f'Error al cargar datos: {e}')
+            # ESTO IMPRIMIRÁ EL ERROR EN LA CONSOLA DE RENDER PARA QUE LO VEAMOS
+            print("\n" + "="*50)
+            print(f"❌ ERROR GRAVE EN LA RUTA /admin: {e}")
+            print("="*50 + "\n")
+            
+            flash(f'Error interno: {e}')
             return render_template('panel-admin.html', nombre_usuario=session['nombre'], usuarios=[], lotes=[], historial_acciones=[])
         finally:
             if conn is not None:
