@@ -522,6 +522,9 @@ def dashboard():
 # API ENDPOINTS (JSON) PARA GRÁFICAS Y HARDWARE
 # ==========================================
 
+# ---------------------------------------------------------
+# RUTA 1: PARA QUE LA PÁGINA WEB LEA LOS DATOS
+# ---------------------------------------------------------
 @app.route('/api/sensores')
 def api_sensores():
     if 'usuario' not in session:
@@ -530,6 +533,7 @@ def api_sensores():
     conn = None
     try:
         conn = obtener_conexion()
+        # Nota ninja: Si alguna vez te da error, cambia DictCursor por RealDictCursor como hicimos antes 😉
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY id DESC LIMIT 1')
         row = cursor.fetchone()
@@ -544,6 +548,40 @@ def api_sensores():
             })
         return jsonify({'temperatura': 0, 'humedad': 0, 'distancia': 0, 'fecha_hora': ''})
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn is not None:
+            conn.close()
+
+# ---------------------------------------------------------
+# RUTA 2: PARA QUE EL ESP32 GUARDE DATOS (NUEVA RUTA)
+# ---------------------------------------------------------
+@app.route('/api/esp32/sensores', methods=['POST'])
+def recibir_sensores_esp32():
+    # ¡OJO! Aquí NO pedimos sesión, porque el ESP32 no hace login.
+    datos = request.get_json()
+    
+    if not datos:
+        return jsonify({'error': 'No se recibieron datos'}), 400
+
+    temp = datos.get('temperatura')
+    hum = datos.get('humedad')
+    dist = datos.get('distancia')
+
+    conn = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        # Usamos tu tabla HISTORIAL_SENSORES para guardar lo del ESP32
+        cursor.execute('''
+            INSERT INTO HISTORIAL_SENSORES (temperatura, humedad, distancia, fecha_hora) 
+            VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+        ''', (temp, hum, dist))
+        conn.commit()
+        cursor.close()
+        return jsonify({'success': True, 'mensaje': 'Datos guardados en HISTORIAL_SENSORES'}), 200
+    except Exception as e:
+        print(f"Error al guardar sensores del ESP32: {e}")
         return jsonify({'error': str(e)}), 500
     finally:
         if conn is not None:
