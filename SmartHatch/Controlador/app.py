@@ -8,8 +8,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
-# === NUEVA LIBRERÍA PARA LOCAL ===
-from dotenv import load_dotenv 
 
 # Carga las variables del archivo .env
 load_dotenv()
