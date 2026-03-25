@@ -254,7 +254,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <nav class="navbar">
         <div class="navbar-left">
             <i class="fa-solid fa-egg"></i>
@@ -266,7 +265,6 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
     {% if messages %}
     <div class="flash-container">
@@ -279,11 +277,9 @@
     {% endif %}
     {% endwith %}
 
-    <!-- CONTENIDO PRINCIPAL -->
     <div class="main-content">
 
         <div class="col">
-            <!-- Cuadrante 1: Gestión de Lotes -->
             <div class="quadrant">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <h2 style="margin-bottom:0;">Gestión de Lotes</h2>
@@ -315,7 +311,6 @@
                 </div>
             </div>
 
-            <!-- Cuadrante 2: Usuarios -->
             <div class="quadrant">
                 <div class="users-header">
                     <h2>Usuarios / Investigadores</h2>
@@ -374,7 +369,6 @@
             </div>
         </div>
 
-        <!-- Cuadrante 3 y 4: Sensores e Historial -->
         <div class="col">
             <div class="quadrant">
                 <h2>Sensores y Actuadores</h2>
@@ -443,9 +437,6 @@
 
     </div>
 
-    <!-- ==================== MODALES ==================== -->
-
-    <!-- Modal Lote -->
     <div class="modal-overlay" id="modalLote">
         <div class="modal-content">
             <button class="close-btn" onclick="cerrarModal('modalLote')"><i class="fa-solid fa-xmark"></i></button>
@@ -455,7 +446,6 @@
         </div>
     </div>
 
-    <!-- Modal Agregar Usuario -->
     <div class="modal-overlay" id="modalUsuario">
         <div class="modal-content">
             <button class="close-btn" onclick="cerrarModal('modalUsuario')"><i class="fa-solid fa-xmark"></i></button>
@@ -486,7 +476,6 @@
         </div>
     </div>
 
-    <!-- Modales de Edición de Usuario (uno por cada usuario, fuera de la tabla) -->
     {% for u in usuarios %}
     <div id="modalEditUser{{ u.id }}" class="modal-overlay">
         <div class="modal-content">
@@ -521,7 +510,6 @@
     </div>
     {% endfor %}
 
-    <!-- Modal Dispositivo -->
     <div class="modal-overlay" id="modalDevice">
         <div class="modal-content large">
             <button class="close-btn" onclick="cerrarModal('modalDevice')"><i class="fa-solid fa-xmark"></i></button>
@@ -531,14 +519,14 @@
                 <h2 id="dev-name">Dispositivo</h2>
                 <h1 id="dev-value" style="color:#00d2d3; margin: 10px 0 20px 0; font-size:3rem;">--</h1>
                 
-                <div class="control-btns">
+                <div class="control-btns" id="control-btns-admin">
                     <button onclick="ajustarActuadorAdmin('bajar')"><i class="fa-solid fa-arrow-down"></i> Bajar</button>
                     <button onclick="ajustarActuadorAdmin('subir')"><i class="fa-solid fa-arrow-up"></i> Subir</button>
                 </div>
 
                 <div class="danger-zone">
                     <h5><i class="fa-solid fa-triangle-exclamation"></i> Zona de Riesgo</h5>
-                    <p style="font-size:0.75rem; margin-bottom:10px; color:#ccc;">Forzar el estado de este actuador ignorará las reglas automáticas de la incubadora.</p>
+                    <p style="font-size:0.75rem; margin-bottom:10px; color:#ccc;">Forzar el estado de este elemento ignorará las reglas automáticas.</p>
                     <button class="switch-btn switch-off" id="btn-force" onclick="toggleDispositivo()">Apagar Forzado</button>
                 </div>
             </div>
@@ -563,12 +551,13 @@
             });
         });
 
-        // Objeto global para almacenar datos recientes y pasarlos al modal
+        // Objeto global para almacenar datos recientes
         let currentData = { temp: '--', hum: '--', dist: '--', calefactor: false, ventilador: false, rotacion: 45.0 };
         let sensorActualAdmin = '';
 
-        // Modal de Dispositivos (Especial para dibujar gráfica y controles)
+        // Modal de Dispositivos (Gráfica y controles dinámicos)
         let chartInst = null;
+        
         function abrirModalDispositivo(nombre, valor) {
             document.getElementById('dev-name').innerText = nombre;
             document.getElementById('dev-value').innerText = valor;
@@ -577,80 +566,76 @@
             sensorActualAdmin = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
             const btnForce = document.getElementById('btn-force');
-            const dangerZone = document.querySelector('.danger-zone');
-            const controlBtns = document.querySelector('.control-btns');
+            const controlBtns = document.getElementById('control-btns-admin');
 
-            // Mostrar ambos controles por defecto (como solicitó el usuario para los sensores)
-            dangerZone.style.display = 'block';
-            controlBtns.style.display = 'flex';
-            btnForce.style.display = 'block';
-            
-            if (['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
-                controlBtns.style.display = 'none'; // Ocultar subir/bajar para estos actuadores booleanos
-                const encendido = currentData[sensorActualAdmin];
-                if (encendido) {
-                    btnForce.className = 'switch-btn switch-on';
-                    btnForce.innerText = "Apagar Forzado";
-                } else {
-                    btnForce.className = 'switch-btn switch-off';
-                    btnForce.innerText = "Encendido Forzado";
-                }
-            } else if (sensorActualAdmin === 'rotacion') {
-                btnForce.style.display = 'none'; // Ocultar botón de on/off para rotación
+            // 1. Mostrar/Ocultar botones de Subir y Bajar
+            // Solo el motor de rotación conserva la capacidad de subir y bajar numéricamente
+            if (sensorActualAdmin === 'rotacion') {
+                controlBtns.style.display = 'flex'; 
             } else {
-                // Es un sensor (temperatura, humedad, distancia)
-                // Se muestran los botones, iniciar el botón en Off visualmente
-                btnForce.className = 'switch-btn switch-off';
-                btnForce.innerText = "Encendido Forzado";
+                controlBtns.style.display = 'none'; // Sensores, Calefactor y Ventilador NO tienen subir/bajar
             }
+
+            // 2. Lógica del botón ON/OFF (Se muestra para TODOS)
+            let isON = true;
+            if (['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
+                // Si es un actuador real, leemos su estado desde la Base de Datos
+                isON = currentData[sensorActualAdmin];
+            } else {
+                // Si es un sensor (o la rotación), simulamos un estado "ON/OFF" local (visual) 
+                // ya que los sensores no se "apagan" desde la base de datos
+                isON = currentData[sensorActualAdmin + '_on'] !== false; 
+            }
+
+            // Pintar el botón según el estado
+            actualizarEstiloBotonToggle(btnForce, isON);
 
             renderizarGrafica(nombre);
         }
 
-        // Simulación del botón de Riesgo (Toggle de Actuador a API)
         function toggleDispositivo() {
             const btn = document.getElementById('btn-force');
-            const nuevoEstado = btn.classList.contains('switch-off'); // Si estaba OFF, el nuevo estado es true (ON)
+            const nuevoEstado = btn.classList.contains('switch-off'); // true = Encender, false = Apagar
 
-            if (!['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
-                // Cambio solo visual si no es un actuador backend
-                if (nuevoEstado) {
-                    btn.className = 'switch-btn switch-on';
-                    btn.innerText = "Apagar Forzado";
-                } else {
-                    btn.className = 'switch-btn switch-off';
-                    btn.innerText = "Encendido Forzado";
-                }
-                return;
-            }
-            
-            fetch('/api/actuadores', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actuador: sensorActualAdmin, valor: nuevoEstado })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    currentData[sensorActualAdmin] = nuevoEstado;
-                    if (nuevoEstado) {
-                        btn.className = 'switch-btn switch-on';
-                        btn.innerText = "Apagar Forzado";
-                        document.getElementById('dev-value').innerText = 'ON';
-                    } else {
-                        btn.className = 'switch-btn switch-off';
-                        btn.innerText = "Encendido Forzado";
-                        document.getElementById('dev-value').innerText = 'OFF';
+            if (['calefactor', 'ventilador'].includes(sensorActualAdmin)) {
+                // Actuadores Reales -> Enviamos la orden al servidor (Python)
+                fetch('/api/actuadores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ actuador: sensorActualAdmin, valor: nuevoEstado })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        currentData[sensorActualAdmin] = nuevoEstado;
+                        actualizarEstiloBotonToggle(btn, nuevoEstado);
+                        document.getElementById('dev-value').innerText = nuevoEstado ? 'ON' : 'OFF';
+                        actualizarUIActuadores();
                     }
-                    actualizarUIActuadores();
-                }
-            })
-            .catch(err => console.error("Error toggling actuador:", err));
+                })
+                .catch(err => console.error("Error toggling actuador:", err));
+            } else {
+                // Sensores y Rotación -> Solo cambia visualmente (simulación para el Admin)
+                currentData[sensorActualAdmin + '_on'] = nuevoEstado;
+                actualizarEstiloBotonToggle(btn, nuevoEstado);
+            }
+        }
+
+        // Función de apoyo para pintar el botón verde/rojo
+        function actualizarEstiloBotonToggle(btn, estadoON) {
+            if (estadoON) {
+                btn.className = 'switch-btn switch-on';
+                btn.innerText = "Apagar Forzado";
+            } else {
+                btn.className = 'switch-btn switch-off';
+                btn.innerText = "Encendido Forzado";
+            }
         }
 
         function ajustarActuadorAdmin(accion) {
+            // Seguridad: Solo permite ejecutar esta función si estamos en el panel de rotación
             if (sensorActualAdmin !== 'rotacion') {
-                return; // Solo hacer interacciones de backend reales en rotacion
+                return; 
             }
             
             let nuevoValor = currentData.rotacion || 45.0;
@@ -680,7 +665,7 @@
             
             let querySensor = sensorActualAdmin;
             if (!['temperatura', 'humedad', 'distancia'].includes(querySensor)) {
-                querySensor = 'temperatura'; // Default para actuadores que no tienen historial numérico
+                querySensor = 'temperatura'; // Default visual para actuadores
             }
 
             fetch('/api/historial?rango=dia')
