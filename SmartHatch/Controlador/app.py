@@ -399,33 +399,28 @@ def agregar_usuario():
 
     return redirect(url_for('admin'))
 
-@app.route('/editar_usuario/<int:id>', methods=['POST'])
-def editar_usuario(id):
-    if 'usuario' not in session or session['rol'] != 'admin':
+@app.route('/eliminar_usuario/<int:id>', methods=['POST'])
+def eliminar_usuario(id):
+    if 'usuario' not in session or session.get('rol') != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
-    nombre = request.form['nombre']
-    rol = request.form['rol']
-    estudios = request.form['estudios']
-    correo = request.form['correo']
+    if id == session.get('id'):
+        flash('❌ Operación denegada: No puedes eliminar tu propia cuenta mientras estás en sesión.')
+        return redirect(url_for('admin'))
 
     conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE USUARIOS 
-            SET nombre = %s, rol = %s, estudios = %s, correo = %s 
-            WHERE id = %s
-        ''', (nombre, rol, estudios, correo, id))
+        cursor.execute('DELETE FROM USUARIOS WHERE id = %s', (id,))
         conn.commit()
         cursor.close()
         
-        registrar_accion(session['nombre'], f'Actualizó perfil del usuario ID {id}')
-        flash('✅ Usuario actualizado correctamente.')
+        registrar_accion(session['nombre'], f'Eliminó al usuario ID {id}')
+        flash('🗑️ Usuario eliminado del sistema.')
     except Exception as e:
-        flash(f'❌ Error al actualizar el usuario: {e}')
+        flash(f'❌ Error al eliminar el usuario: {e}')
     finally:
         if conn is not None:
             conn.close()
@@ -434,7 +429,7 @@ def editar_usuario(id):
 
 @app.route('/restaurar_password/<int:id>', methods=['POST'])
 def restaurar_password(id):
-    if 'usuario' not in session or session['rol'] != 'admin':
+    if 'usuario' not in session or session.get('rol') != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
@@ -473,7 +468,6 @@ def restaurar_password(id):
             conn.close()
 
     return redirect(url_for('admin'))
-
 # ==========================================
 # DASHBOARD DEL INVESTIGADOR
 # ==========================================
