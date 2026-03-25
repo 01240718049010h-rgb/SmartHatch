@@ -255,6 +255,7 @@
             display: flex;
             position: relative;
             box-shadow: 0 0 30px rgba(0,210,211,0.3);
+            transition: width 0.3s ease;
         }
 
         .close-btn {
@@ -275,17 +276,19 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            transition: width 0.3s ease;
         }
 
         .modal-left h4 { font-size: 1rem; color: #aaa; text-transform: uppercase; }
         .modal-left h2 { font-size: 2rem; margin-top: 5px; color: white;}
-        .modal-left .modal-value { font-size: 4rem; font-weight: 800; color: #00d2d3; margin: 20px 0; }
+        .modal-left .modal-value { font-size: 4rem; font-weight: 800; color: #00d2d3; margin: 20px 0; text-align: center; }
 
         .modal-right {
             width: 65%;
             padding: 30px;
             display: flex;
             flex-direction: column;
+            transition: opacity 0.3s ease;
         }
 
         .chart-container {
@@ -311,6 +314,30 @@
         }
         .chart-filters button:hover, .chart-filters button.active {
             border-color: #00d2d3; color: #00d2d3;
+        }
+
+        /* Botón de girar servomotor */
+        .btn-girar {
+            background: #00d2d3;
+            color: #142830;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: none; /* Oculto por defecto */
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            align-self: center;
+        }
+        .btn-girar:hover {
+            background: #00b8b9;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.4);
         }
 
         /* Sin lotes */
@@ -461,17 +488,20 @@
     </div>
 
     <div class="modal-overlay" id="myModal">
-        <div class="modal-content">
+        <div class="modal-content" id="modal-cuerpo">
             <button class="close-btn" onclick="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
             
-            <div class="modal-left">
+            <div class="modal-left" id="modal-left">
                 <h4 id="modal-tipo">Tipo</h4>
                 <h2 id="modal-nombre">Nombre</h2>
                 <div class="modal-value" id="modal-valor">--</div>
                 
-                </div>
+                <button id="btn-accion-girar" class="btn-girar" onclick="mandarGirarMotor()">
+                    <i class="fa-solid fa-arrows-rotate"></i> Girar
+                </button>
+            </div>
 
-            <div class="modal-right">
+            <div class="modal-right" id="modal-right">
                 <div class="chart-container">
                     <canvas id="miGrafica"></canvas>
                 </div>
@@ -493,8 +523,7 @@
         const colores = {
             temperatura: { border: '#ff6b6b', bg: 'rgba(255, 107, 107, 0.2)' },
             humedad: { border: '#00d2d3', bg: 'rgba(0, 210, 211, 0.2)' },
-            distancia: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' },
-            actuador: { border: '#aaa', bg: 'rgba(170, 170, 170, 0.2)' } // Color genérico para actuadores
+            distancia: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' }
         };
 
         // ==========================================
@@ -560,22 +589,53 @@
         });
 
         // ==========================================
-        // MODAL — Sensores y Gráficas
+        // MODAL — Lógica de Visualización
         // ==========================================
 
         function abrirModal(tipo, nombre, valor) {
             document.getElementById('modal-tipo').innerText = tipo;
             document.getElementById('modal-nombre').innerText = nombre;
             document.getElementById('modal-valor').innerText = valor;
+            
+            const modalRight = document.getElementById('modal-right');
+            const modalLeft = document.getElementById('modal-left');
+            const modalCuerpo = document.getElementById('modal-cuerpo');
+            const btnGirar = document.getElementById('btn-accion-girar');
+
+            if (tipo === 'Actuador') {
+                // Ocultar gráfica, centrar info de actuador
+                modalRight.style.display = 'none';
+                modalLeft.style.width = '100%';
+                modalLeft.style.borderRight = 'none';
+                modalLeft.style.alignItems = 'center';
+                modalCuerpo.style.maxWidth = '500px'; // Modal más pequeño para actuadores
+
+                // Mostrar botón de girar SÓLO si es el servomotor
+                if (nombre.includes('Servomotor') || nombre.includes('Rotación')) {
+                    btnGirar.style.display = 'flex';
+                } else {
+                    btnGirar.style.display = 'none';
+                }
+
+                if (myChart != null) { myChart.destroy(); }
+            } else {
+                // Mostrar gráfica y layout original para sensores
+                modalRight.style.display = 'flex';
+                modalLeft.style.width = '35%';
+                modalLeft.style.borderRight = '1px solid rgba(255,255,255,0.1)';
+                modalLeft.style.alignItems = 'flex-start';
+                modalCuerpo.style.maxWidth = '900px'; // Tamaño normal
+                btnGirar.style.display = 'none';
+
+                sensorActualModal = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (sensorActualModal.includes('temperatura')) sensorActualModal = 'temperatura';
+                else if (sensorActualModal.includes('humedad')) sensorActualModal = 'humedad';
+                else if (sensorActualModal.includes('distancia')) sensorActualModal = 'distancia';
+
+                cargarChart('dia', document.querySelector('.chart-filters button.active'));
+            }
+
             document.getElementById('myModal').style.display = 'flex';
-
-            sensorActualModal = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (sensorActualModal.includes('temperatura')) sensorActualModal = 'temperatura';
-            else if (sensorActualModal.includes('humedad')) sensorActualModal = 'humedad';
-            else if (sensorActualModal.includes('distancia')) sensorActualModal = 'distancia';
-            else sensorActualModal = 'actuador'; // Evitar error si se abre gráfica de actuador
-
-            cargarChart('dia', document.querySelector('.chart-filters button.active'));
         }
 
         function cerrarModal() {
@@ -586,15 +646,29 @@
             if (e.target === this) cerrarModal();
         });
 
+        // ==========================================
+        // ACCIÓN DEL MOTOR
+        // ==========================================
+        function mandarGirarMotor() {
+            // Reemplaza esta ruta por la de tu backend para controlar el motor
+            fetch('/api/volteo_manual', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("El motor está girando...");
+                // Puedes agregar aquí lógica para cerrar el modal o actualizar UI
+            })
+            .catch(err => {
+                console.error('Error enviando la orden al motor:', err);
+                alert("Orden de giro enviada (ajusta tu endpoint en JavaScript si falla)");
+            });
+        }
+
         function cargarChart(rango, btn) {
             document.querySelectorAll('.chart-filters button').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
-
-            // Si es actuador, no solemos graficar, pero mandamos la petición vacía o la misma
-            if(sensorActualModal === 'actuador') {
-                if (myChart != null) { myChart.destroy(); }
-                return; // Opcional: Podrías ocultar el canvas si no quieres graficar actuadores
-            }
 
             fetch('/api/historial?rango=' + rango)
                 .then(res => res.json())
@@ -658,7 +732,6 @@
                 const hum = data.humedad;
                 const dist = data.distancia;
 
-                // Actualizar números en las tarjetas
                 if (tempActualNum) tempActualNum.innerText = temp.toFixed(1) + '°C';
                 if (humActualNum) humActualNum.innerText = hum.toFixed(0) + '%';
                 
@@ -670,7 +743,6 @@
             }
         }
 
-        // Refresco de Actuadores
         function actualizarActuadores() {
             fetch('/api/actuadores')
                 .then(res => res.json())
@@ -684,7 +756,6 @@
                 .catch(err => console.error('Error en fetch /api/actuadores:', err));
         }
 
-        // Inicialización y Temporizadores
         actualizarDatosSensores();
         actualizarActuadores();
 
