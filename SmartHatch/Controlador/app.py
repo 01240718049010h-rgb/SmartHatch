@@ -427,39 +427,6 @@ def editar_usuario(id):
 
     return redirect(url_for('admin'))
 
-@app.route('/editar_usuario/<int:id>', methods=['POST'])
-def editar_usuario(id):
-    if 'usuario' not in session or session['rol'] != 'admin':
-        flash('Acceso denegado.')
-        return redirect(url_for('index'))
-
-    nombre = request.form['nombre']
-    rol = request.form['rol']
-    estudios = request.form['estudios']
-    correo = request.form['correo']
-
-    conn = None
-    try:
-        conn = obtener_conexion()
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE USUARIOS 
-            SET nombre = %s, rol = %s, estudios = %s, correo = %s 
-            WHERE id = %s
-        ''', (nombre, rol, estudios, correo, id))
-        conn.commit()
-        cursor.close()
-        
-        registrar_accion(session['nombre'], f'Actualizó perfil del usuario ID {id}')
-        flash('✅ Usuario actualizado correctamente.')
-    except Exception as e:
-        flash(f'❌ Error al actualizar el usuario: {e}')
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return redirect(url_for('admin'))
-
 @app.route('/restaurar_password/<int:id>', methods=['POST'])
 def restaurar_password(id):
     if 'usuario' not in session or session['rol'] != 'admin':
