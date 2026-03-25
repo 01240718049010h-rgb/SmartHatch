@@ -345,7 +345,7 @@
                     <tbody>
                         {% for lote in lotes %}
                         <tr>
-                            <td><strong>{{ lote.numero|string|zfill(2) }}</strong></td>
+                            <td><strong>{{ "%02d" | format(lote.numero) }}</strong></td>
                             <td>{{ lote.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
                             <td>{{ lote.dias_incubacion }} días</td>
                             <td>
