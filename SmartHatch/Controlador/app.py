@@ -427,28 +427,33 @@ def editar_usuario(id):
 
     return redirect(url_for('admin'))
 
-@app.route('/eliminar_usuario/<int:id>', methods=['POST'])
-def eliminar_usuario(id):
+@app.route('/editar_usuario/<int:id>', methods=['POST'])
+def editar_usuario(id):
     if 'usuario' not in session or session['rol'] != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
-    if id == session['id']:
-        flash('❌ Operación denegada: No puedes eliminar tu propia cuenta mientras estás en sesión.')
-        return redirect(url_for('admin'))
+    nombre = request.form['nombre']
+    rol = request.form['rol']
+    estudios = request.form['estudios']
+    correo = request.form['correo']
 
     conn = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM USUARIOS WHERE id = %s', (id,))
+        cursor.execute('''
+            UPDATE USUARIOS 
+            SET nombre = %s, rol = %s, estudios = %s, correo = %s 
+            WHERE id = %s
+        ''', (nombre, rol, estudios, correo, id))
         conn.commit()
         cursor.close()
         
-        registrar_accion(session['nombre'], f'Eliminó al usuario ID {id}')
-        flash('🗑️ Usuario eliminado del sistema.')
+        registrar_accion(session['nombre'], f'Actualizó perfil del usuario ID {id}')
+        flash('✅ Usuario actualizado correctamente.')
     except Exception as e:
-        flash(f'❌ Error al eliminar el usuario: {e}')
+        flash(f'❌ Error al actualizar el usuario: {e}')
     finally:
         if conn is not None:
             conn.close()
