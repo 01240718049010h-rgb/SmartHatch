@@ -8,42 +8,51 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
+# === NUEVA LIBRERÍA PARA LOCAL ===
+from dotenv import load_dotenv 
+
+# Carga las variables del archivo .env
+load_dotenv()
 
 # ==========================================
 # CONFIGURACIÓN
 # ==========================================
 
-# Define folders relative to this script's location
 base_dir = os.path.dirname(os.path.abspath(__file__))
+# Asegúrate de que esta ruta sea correcta en tu PC local
 vista_dir = os.path.join(base_dir, '..', 'Vista')
 
 app = Flask(__name__,
             template_folder=os.path.join(vista_dir, 'templates'),
             static_folder=os.path.join(vista_dir, 'static'))
 
-# Lee la llave secreta
-app.secret_key = os.getenv('SECRET_KEY')
-# Lee directamente la base de datos
+# Lee las llaves desde el archivo .env (o del sistema)
+app.secret_key = os.getenv('SECRET_KEY', 'clave_por_defecto_local')
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 # =================================================================
 def obtener_conexion():
     """Conexión a PostgreSQL"""
+    # En local, si no hay URL, intentará conectar por defecto (opcional)
     conn = psycopg2.connect(DATABASE_URL)
     with conn.cursor() as cur:
         cur.execute("SET timezone = 'America/Merida';")
     return conn
 
 def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen):
-    # Ahora Python leerá los datos directamente desde el panel de Render
+    # Lee los datos del .env
     remitente = os.getenv('EMAIL')
     password_app = os.getenv('PASSWORD')
 
-    # Construimos el mensaje
+    if not remitente or not password_app:
+        print("Error: No se configuraron las credenciales de correo en el .env")
+        return False
+
     msg = MIMEMultipart()
     msg['From'] = remitente
     msg['To'] = correo_destino
     msg['Subject'] = "Bienvenido a Smart Hatch - Credenciales de Acceso"
+
 
     # El cuerpo del correo (HTML con diseño profesional)
     cuerpo_html = f"""
@@ -123,15 +132,15 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     msg.attach(MIMEText(cuerpo_html, 'html'))
 
     try:
-        # Nos conectamos a Google y le damos MÁXIMO 8 segundos para responder
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=8) 
-        server.starttls() 
+        # Nos conectamos a los servidores de Google para enviar el correo
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls() # Modo seguro
         server.login(remitente, password_app)
         server.send_message(msg)
         server.quit()
         return True
     except Exception as e:
-        print(f"Error enviando correo (Cancelado para evitar caída): {e}")
+        print(f"Error enviando correo: {e}")
         return False
 
 def inicializar_tabla_lotes():
@@ -146,7 +155,8 @@ def inicializar_tabla_lotes():
                 numero INTEGER NOT NULL,
                 fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 estado VARCHAR(20) DEFAULT 'activo',
-                dias_incubacion INTEGER DEFAULT 21
+                dias_incubacion INTEGER DEFAULT 21,
+                ultimo_volteo TIMESTAMP
             )
         ''')
         conn.commit()
@@ -263,7 +273,7 @@ def procesar_login():
     if user:
         rol_bd = user['rol']
         if (rol_form == 'supervisor' and rol_bd == 'admin') or (rol_form == 'investigador' and rol_bd == 'investigador'):
-            # === NUEVO: Actualizar última conexión ===
+            # === Actualizar última conexión ===
             conn_upd = None
             try:
                 conn_upd = obtener_conexion()
@@ -360,7 +370,6 @@ def agregar_usuario():
         conn = obtener_conexion()
         cursor = conn.cursor()
 
-        # Insertar en PostgreSQL
         cursor.execute('''
             INSERT INTO USUARIOS (usuario, password, nombre, rol, estudios, correo)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -369,7 +378,6 @@ def agregar_usuario():
         conn.commit()
         cursor.close()
         
-        # === NUEVO: ENVIAR EL CORREO ===
         correo_enviado = enviar_correo_credenciales(correo, nombre, nuevo_usuario, nueva_password)
         
         if correo_enviado:
@@ -450,12 +458,10 @@ def eliminar_usuario(id):
 
 @app.route('/restaurar_password/<int:id>', methods=['POST'])
 def restaurar_password(id):
-    # Validar seguridad
     if 'usuario' not in session or session['rol'] != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
-    # Generar nueva contraseña aleatoria de 6 caracteres
     nueva_password = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
     conn = None
@@ -463,7 +469,6 @@ def restaurar_password(id):
         conn = obtener_conexion()
         cursor = conn.cursor()
 
-        # Primero obtenemos los datos del usuario para el correo
         cursor.execute('SELECT usuario, nombre, correo FROM USUARIOS WHERE id = %s', (id,))
         user_data = cursor.fetchone()
 
@@ -472,11 +477,9 @@ def restaurar_password(id):
             nombre_bd = user_data[1]
             correo_bd = user_data[2]
 
-            # Actualizamos la contraseña en la base de datos
             cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
             conn.commit()
 
-            # Intentamos enviar el correo si el usuario tiene uno registrado
             if correo_bd:
                 correo_enviado = enviar_correo_credenciales(correo_bd, nombre_bd, usuario_bd, nueva_password)
                 if correo_enviado:
@@ -501,35 +504,28 @@ def restaurar_password(id):
 
 @app.route('/dashboard')
 def dashboard():
-    # Validar que sea un investigador
     if 'usuario' in session and session['rol'] == 'investigador':
         conn = None
         try:
             conn = obtener_conexion()
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-            # 1. Obtener la lectura más reciente
             cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY fecha_hora DESC LIMIT 1')
             ultima_lectura = cursor.fetchone()
 
-            # 2. Obtener las últimas 10 lecturas para la tabla del historial
             cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY fecha_hora DESC LIMIT 10')
             historial = cursor.fetchall()
 
-            # 3. Lotes activos (para el carrusel)
             cursor.execute("SELECT * FROM LOTES WHERE estado = 'activo' ORDER BY numero ASC")
             lotes = cursor.fetchall()
 
             cursor.close()
 
-            # 4. LÓGICA DE ALERTAS 🚨
             alerta = None
             if ultima_lectura:
-                # Extraemos los valores. Usamos float() por si la BD los devuelve como Decimal
                 temp = float(ultima_lectura['temperatura']) if ultima_lectura['temperatura'] else 0
                 hum = float(ultima_lectura['humedad']) if ultima_lectura['humedad'] else 0
 
-                # Definir rangos críticos (Ejemplo: Pollo = 37.5°C a 38.0°C)
                 if temp < 36.5 or temp > 38.5:
                     alerta = f"¡ALERTA CRÍTICA! Temperatura fuera de rango: {temp}°C. Revise el sistema de calentamiento."
                 elif hum < 50 or hum > 70:
@@ -553,12 +549,11 @@ def dashboard():
     return redirect(url_for('index'))
 
 # ==========================================
-# API ENDPOINTS (JSON) PARA GRÁFICAS
+# API ENDPOINTS (JSON) PARA GRÁFICAS Y HARDWARE
 # ==========================================
 
 @app.route('/api/sensores')
 def api_sensores():
-    """Retorna la última lectura de sensores en formato JSON."""
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
@@ -586,16 +581,11 @@ def api_sensores():
 
 @app.route('/api/historial')
 def api_historial():
-    """
-    Retorna el historial de lecturas de sensores.
-    Parámetro: ?rango=dia|semana|mes (default: dia)
-    """
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
     rango = request.args.get('rango', 'dia')
 
-    # Mapear el rango a un intervalo SQL
     intervalos = {
         'dia': "INTERVAL '1 day'",
         'semana': "INTERVAL '7 days'",
@@ -634,7 +624,6 @@ def api_historial():
 
 @app.route('/api/actuadores', methods=['GET', 'POST'])
 def api_actuadores():
-    """Maneja el estado actual de los actuadores (calefactor, ventilador, rotacion)"""
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
     
@@ -657,14 +646,16 @@ def api_actuadores():
             return jsonify({'calefactor': False, 'ventilador': False, 'rotacion': 45.0})
             
         elif request.method == 'POST':
-            # Actualiza el valor de un actuador
+            # Este es el endpoint que usa el Admin para forzar cosas manuales
+            if session['rol'] != 'admin':
+                return jsonify({'error': 'No tienes permisos para forzar actuadores'}), 403
+
             data = request.json
             if not data:
                 return jsonify({'error': 'No JSON payload'}), 400
                 
             actuador = data.get('actuador')
             valor = data.get('valor')
-            lote_id = data.get('lote_id')
             
             if actuador in ['calefactor', 'ventilador']:
                 cursor.execute(f'UPDATE ESTADO_ACTUADORES SET {actuador} = %s', (bool(valor),))
@@ -674,9 +665,6 @@ def api_actuadores():
                 cursor.execute('UPDATE ESTADO_ACTUADORES SET rotacion = %s', (float(valor),))
                 registrar_accion(session['nombre'], f'Ajustó la Rotación manual a {valor}°')
                 
-                if lote_id:
-                    cursor.execute('UPDATE LOTES SET ultimo_volteo = CURRENT_TIMESTAMP WHERE id = %s', (int(lote_id),))
-                    
             else:
                 return jsonify({'error': 'Actuador desconocido'}), 400
                 
@@ -684,6 +672,36 @@ def api_actuadores():
             cursor.close()
             return jsonify({'success': True, 'actuador': actuador, 'valor': valor})
             
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn is not None:
+            conn.close()
+
+# === NUEVA RUTA PARA EL BOTÓN DE GIRAR (INVESTIGADOR Y ADMIN) ===
+@app.route('/api/volteo_manual', methods=['POST'])
+def api_volteo_manual():
+    """Esta ruta le envía la orden al hardware para activar el motor de volteo unos segundos"""
+    if 'usuario' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    
+    conn = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        
+        # 1. Registramos en el historial que el usuario mandó a girar los huevos
+        registrar_accion(session['nombre'], 'Activó el giro manual del motor de volteo')
+        
+        # 2. Actualizamos el "último volteo" de los lotes activos para que se refleje en pantalla
+        cursor.execute("UPDATE LOTES SET ultimo_volteo = CURRENT_TIMESTAMP WHERE estado = 'activo'")
+        conn.commit()
+        cursor.close()
+
+        # [AQUÍ] En un sistema real, aquí enviarías un pulso por MQTT o Socket
+        # hacia la Raspberry Pi o ESP32 para que accione el relay del motor.
+        
+        return jsonify({'success': True, 'mensaje': 'Orden de giro enviada correctamente al hardware.'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
@@ -701,12 +719,10 @@ def agregar_lote():
         return redirect(url_for('index'))
 
     conn = None
-    siguiente_numero = None
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
 
-        # Obtener el siguiente número de lote
         cursor.execute('SELECT COALESCE(MAX(numero), 0) + 1 FROM LOTES')
         siguiente_numero = cursor.fetchone()[0]
 
@@ -725,7 +741,6 @@ def agregar_lote():
         if conn is not None:
             conn.close()
 
-    # Redirigir según el rol
     if session.get('rol') == 'admin':
         return redirect(url_for('admin'))
     return redirect(url_for('dashboard'))
@@ -782,7 +797,6 @@ def marcar_lote(id):
 
 @app.route('/api/lotes')
 def api_lotes():
-    """Retorna los lotes activos en formato JSON."""
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
