@@ -281,20 +281,6 @@
         .modal-left h2 { font-size: 2rem; margin-top: 5px; color: white;}
         .modal-left .modal-value { font-size: 4rem; font-weight: 800; color: #00d2d3; margin: 20px 0; }
 
-        .control-btns { display: flex; gap: 10px; }
-        .control-btns button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            transition: 0.3s;
-        }
-        .control-btns button:hover { background: #00d2d3; color: #0f2027; }
-
         .modal-right {
             width: 65%;
             padding: 30px;
@@ -483,11 +469,7 @@
                 <h2 id="modal-nombre">Nombre</h2>
                 <div class="modal-value" id="modal-valor">--</div>
                 
-                <div class="control-btns" id="control-btns">
-                    <button onclick="ajustarActuador('bajar')"><i class="fa-solid fa-arrow-down"></i> Bajar</button>
-                    <button onclick="ajustarActuador('subir')"><i class="fa-solid fa-arrow-up"></i> Subir</button>
                 </div>
-            </div>
 
             <div class="modal-right">
                 <div class="chart-container">
@@ -511,7 +493,8 @@
         const colores = {
             temperatura: { border: '#ff6b6b', bg: 'rgba(255, 107, 107, 0.2)' },
             humedad: { border: '#00d2d3', bg: 'rgba(0, 210, 211, 0.2)' },
-            distancia: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' }
+            distancia: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' },
+            actuador: { border: '#aaa', bg: 'rgba(170, 170, 170, 0.2)' } // Color genérico para actuadores
         };
 
         // ==========================================
@@ -590,6 +573,7 @@
             if (sensorActualModal.includes('temperatura')) sensorActualModal = 'temperatura';
             else if (sensorActualModal.includes('humedad')) sensorActualModal = 'humedad';
             else if (sensorActualModal.includes('distancia')) sensorActualModal = 'distancia';
+            else sensorActualModal = 'actuador'; // Evitar error si se abre gráfica de actuador
 
             cargarChart('dia', document.querySelector('.chart-filters button.active'));
         }
@@ -605,6 +589,12 @@
         function cargarChart(rango, btn) {
             document.querySelectorAll('.chart-filters button').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
+
+            // Si es actuador, no solemos graficar, pero mandamos la petición vacía o la misma
+            if(sensorActualModal === 'actuador') {
+                if (myChart != null) { myChart.destroy(); }
+                return; // Opcional: Podrías ocultar el canvas si no quieres graficar actuadores
+            }
 
             fetch('/api/historial?rango=' + rango)
                 .then(res => res.json())
