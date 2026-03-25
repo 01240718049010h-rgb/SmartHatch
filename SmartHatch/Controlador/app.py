@@ -329,7 +329,7 @@ def admin():
         conn = None
         try:
             conn = obtener_conexion()
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cursor.execute('SELECT * FROM USUARIOS ORDER BY id DESC')
             lista_usuarios = cursor.fetchall()
             cursor.execute("SELECT * FROM LOTES ORDER BY numero ASC")
