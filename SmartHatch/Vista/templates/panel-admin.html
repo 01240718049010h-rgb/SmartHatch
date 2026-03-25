@@ -111,7 +111,7 @@
         .badge-empollado { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
         .badge-fallido { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
 
-        /* === FORMULARIOS (MODALES SIMULADOS) === */
+        /* === FORMULARIOS === */
         .form-card {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px; padding: 20px; margin-bottom: 20px;
@@ -124,6 +124,22 @@
         }
         .form-control:focus { outline: none; border-color: #00d2d3; }
 
+        /* === MODAL EDITAR USUARIO === */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #203a43; padding: 25px; border-radius: 8px;
+            width: 100%; max-width: 500px; border: 1px solid #00d2d3;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative;
+        }
+        .close-modal {
+            color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer;
+        }
+        .close-modal:hover { color: #fff; }
+
         /* === DASHBOARD GRIDS === */
         .dashboard-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;
@@ -133,14 +149,12 @@
             border-radius: 8px; padding: 20px; text-align: center;
         }
         
-        /* Contenedor específico para Sensores (Gráficas grandes) */
         .sensor-card {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px; padding: 20px;
         }
         .chart-container-large { position: relative; height: 250px; width: 100%; }
 
-        /* Contenedor específico para Actuadores (Sin gráficas, solo controles) */
         .actuator-card {
             background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px; padding: 20px; text-align: center;
@@ -309,6 +323,9 @@
                             <td>{{ u.ultima_conexion.strftime('%Y-%m-%d %H:%M') if u.ultima_conexion else 'Nunca' }}</td>
                             <td>
                                 <div style="display: flex; gap: 5px;">
+                                    <button type="button" class="btn btn-primary" title="Editar Usuario" onclick="abrirModalEditar('{{ u.id }}', '{{ u.nombre }}', '{{ u.correo }}', '{{ u.rol }}', '{{ u.estudios }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                     <form action="{{ url_for('restaurar_password', id=u.id) }}" method="POST" onsubmit="return confirm('¿Restaurar contraseña y enviar por correo a este usuario?');">
                                         <button type="submit" class="btn btn-warning" title="Restaurar Contraseña"><i class="fas fa-key"></i></button>
                                     </form>
@@ -321,6 +338,38 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                
+                <div id="modal-editar" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal" onclick="cerrarModalEditar()">&times;</span>
+                        <h4 style="margin-bottom: 15px; color: #00d2d3;"><i class="fas fa-user-edit"></i> Editar Usuario</h4>
+                        <form id="form-editar-usuario" method="POST" action="">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" name="nombre" id="edit-nombre" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Correo Electrónico</label>
+                                <input type="email" name="correo" id="edit-correo" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Rol de Sistema</label>
+                                <select name="rol" id="edit-rol" class="form-control" required>
+                                    <option value="investigador">Investigador</option>
+                                    <option value="admin">Administrador (Supervisor)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Nivel de Estudios / Especialidad</label>
+                                <input type="text" name="estudios" id="edit-estudios" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
             </div>
 
             <div id="tab-lotes" class="tab-content">
@@ -426,6 +475,21 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
+        }
+
+        // Funciones para el Modal de Editar Usuario
+        function abrirModalEditar(id, nombre, correo, rol, estudios) {
+            document.getElementById('edit-nombre').value = nombre;
+            document.getElementById('edit-correo').value = correo;
+            document.getElementById('edit-rol').value = rol;
+            document.getElementById('edit-estudios').value = (estudios !== 'None' && estudios !== '') ? estudios : '';
+            
+            document.getElementById('form-editar-usuario').action = '/editar_usuario/' + id;
+            document.getElementById('modal-editar').style.display = 'flex';
+        }
+
+        function cerrarModalEditar() {
+            document.getElementById('modal-editar').style.display = 'none';
         }
 
         // ==========================================
