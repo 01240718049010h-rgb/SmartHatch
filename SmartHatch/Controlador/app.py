@@ -370,12 +370,18 @@ def admin():
     flash('Acceso denegado. Permisos de administrador requeridos.')
     return redirect(url_for('index'))
 
-@app.route('/restaurar_password/<int:id>', methods=['POST'])
-def restaurar_password(id):
-    if 'usuario' not in session or session.get('rol') != 'admin':
+@app.route('/agregar_usuario', methods=['POST'])
+def agregar_usuario():
+    if 'usuario' not in session or session['rol'] != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
+    nombre = request.form['nombre']
+    rol = request.form['rol']
+    estudios = request.form['estudios']
+    correo = request.form['correo']
+
+    nuevo_usuario = f"U-{random.randint(1000,9999)}"
     nueva_password = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
     conn = None
@@ -383,23 +389,21 @@ def restaurar_password(id):
         conn = obtener_conexion()
         cursor = conn.cursor()
 
-        cursor.execute('SELECT usuario, nombre, correo FROM USUARIOS WHERE id = %s', (id,))
-        user = cursor.fetchone()
+        cursor.execute('''
+            INSERT INTO USUARIOS (usuario, password, nombre, rol, estudios, correo)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (nuevo_usuario, nueva_password, nombre, rol, estudios, correo))
 
-        if user:
-            usuario_bd, nombre_bd, correo_bd = user
-
-            cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
-            conn.commit()
-
-            if correo_bd:
-                enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
-                flash('🔑 Contraseña restaurada. El correo se enviará en breve.')
-            else:
-                flash(f'⚠️ Sin correo. Nueva contraseña: {nueva_password}')
-
+        conn.commit()
         cursor.close()
 
+        #ENVÍO ASYNC (LA CLAVE)
+        enviar_correo_async(correo, nombre, nuevo_usuario, nueva_password)
+
+        flash(f'✅ Usuario {nuevo_usuario} creado. El correo se enviará en breve.')
+
+    except psycopg2.IntegrityError:
+        flash('❌ Usuario o correo ya existe.')
     except Exception as e:
         flash(f'❌ Error: {e}')
     finally:
