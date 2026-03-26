@@ -38,6 +38,7 @@ def obtener_conexion():
     with conn.cursor() as cur:
         cur.execute("SET timezone = 'America/Merida';")
     return conn
+
 #=================================
 # E N V I O    DE    C O R R E O 
 def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen):
@@ -52,7 +53,6 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     msg['From'] = remitente
     msg['To'] = correo_destino
     msg['Subject'] = "Bienvenido a Smart Hatch - Credenciales de Acceso"
-
 
     # El cuerpo del correo (HTML con diseño profesional)
     cuerpo_html = f"""
@@ -142,6 +142,7 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     except Exception as e:
         print(f"[ERROR] enviando correo: {e}")
         return False
+
 # ==========================================
 # ENVÍO EN SEGUNDO PLANO (Hilo de Correo)
 # ==========================================
@@ -464,12 +465,11 @@ def restaurar_password(id):
             cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
             conn.commit()
 
-        if correo_bd:
             if correo_bd:
-            enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
-            flash(f'🔑 Contraseña restaurada correctamente. El correo se enviará en breve.')
+                enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
+                flash('🔑 Contraseña restaurada correctamente. El correo se enviará en breve.')
             else:
-            flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
+                flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
 
         cursor.close()
     except Exception as e:
@@ -479,6 +479,7 @@ def restaurar_password(id):
             conn.close()
 
     return redirect(url_for('admin'))
+
 # ==========================================
 # DASHBOARD DEL INVESTIGADOR
 # ==========================================
@@ -533,9 +534,6 @@ def dashboard():
 # API ENDPOINTS (JSON) PARA GRÁFICAS Y HARDWARE
 # ==========================================
 
-# ---------------------------------------------------------
-# RUTA 1: PARA QUE LA PÁGINA WEB LEA LOS DATOS
-# ---------------------------------------------------------
 @app.route('/api/sensores')
 def api_sensores():
     if 'usuario' not in session:
@@ -544,7 +542,6 @@ def api_sensores():
     conn = None
     try:
         conn = obtener_conexion()
-        # Nota ninja: Si alguna vez te da error, cambia DictCursor por RealDictCursor como hicimos antes 😉
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cursor.execute('SELECT * FROM HISTORIAL_SENSORES ORDER BY id DESC LIMIT 1')
         row = cursor.fetchone()
@@ -564,12 +561,8 @@ def api_sensores():
         if conn is not None:
             conn.close()
 
-# ---------------------------------------------------------
-# RUTA 2: PARA QUE EL ESP32 GUARDE DATOS (NUEVA RUTA)
-# ---------------------------------------------------------
 @app.route('/api/esp32/sensores', methods=['POST'])
 def recibir_sensores_esp32():
-    # ¡OJO! Aquí NO pedimos sesión, porque el ESP32 no hace login.
     datos = request.get_json()
     
     if not datos:
@@ -583,7 +576,6 @@ def recibir_sensores_esp32():
     try:
         conn = obtener_conexion()
         cursor = conn.cursor()
-        # Usamos tu tabla HISTORIAL_SENSORES para guardar lo del ESP32
         cursor.execute('''
             INSERT INTO HISTORIAL_SENSORES (temperatura, humedad, distancia, fecha_hora) 
             VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
@@ -665,7 +657,6 @@ def api_actuadores():
             return jsonify({'calefactor': False, 'ventilador': False, 'rotacion': 45.0})
             
         elif request.method == 'POST':
-            # Este es el endpoint que usa el Admin para forzar cosas manuales
             if session['rol'] != 'admin':
                 return jsonify({'error': 'No tienes permisos para forzar actuadores'}), 403
 
@@ -697,10 +688,8 @@ def api_actuadores():
         if conn is not None:
             conn.close()
 
-# === NUEVA RUTA PARA EL BOTÓN DE GIRAR (INVESTIGADOR Y ADMIN) ===
 @app.route('/api/volteo_manual', methods=['POST'])
 def api_volteo_manual():
-    """Esta ruta le envía la orden al hardware para activar el motor de volteo unos segundos"""
     if 'usuario' not in session:
         return jsonify({'error': 'No autorizado'}), 401
     
@@ -709,17 +698,12 @@ def api_volteo_manual():
         conn = obtener_conexion()
         cursor = conn.cursor()
         
-        # 1. Registramos en el historial que el usuario mandó a girar los huevos
         registrar_accion(session['nombre'], 'Activó el giro manual del motor de volteo')
         
-        # 2. Actualizamos el "último volteo" de los lotes activos para que se refleje en pantalla
         cursor.execute("UPDATE LOTES SET ultimo_volteo = CURRENT_TIMESTAMP WHERE estado = 'activo'")
         conn.commit()
         cursor.close()
 
-        # [AQUÍ] En un sistema real, aquí enviarías un pulso por MQTT o Socket
-        # hacia la Raspberry Pi o ESP32 para que accione el relay del motor.
-        
         return jsonify({'success': True, 'mensaje': 'Orden de giro enviada correctamente al hardware.'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
