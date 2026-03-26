@@ -464,12 +464,12 @@ def restaurar_password(id):
             cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
             conn.commit()
 
+        if correo_bd:
             if correo_bd:
-                if correo_bd:
-                enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
-                flash(f'🔑 Contraseña restaurada correctamente. El correo se enviará en breve.')
-                else:
-                flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
+            enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
+            flash(f'🔑 Contraseña restaurada correctamente. El correo se enviará en breve.')
+            else:
+            flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
 
         cursor.close()
     except Exception as e:
