@@ -9,6 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
+import threading
 
 # Carga las variables del archivo .env
 load_dotenv()
@@ -18,7 +19,7 @@ load_dotenv()
 # ==========================================
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
-# Asegúrate de que esta ruta sea correcta en tu PC local
+# Ruta de vista panel
 vista_dir = os.path.join(base_dir, '..', 'Vista')
 
 app = Flask(__name__,
@@ -32,19 +33,19 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 # =================================================================
 def obtener_conexion():
     """Conexión a PostgreSQL"""
-    # En local, si no hay URL, intentará conectar por defecto (opcional)
+    # Intentará conectar por defecto (opcional)
     conn = psycopg2.connect(DATABASE_URL)
     with conn.cursor() as cur:
         cur.execute("SET timezone = 'America/Merida';")
     return conn
-
+#=================================
+# E N V I O    DE    C O R R E O 
 def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen):
-    # Lee los datos del .env
     remitente = os.getenv('EMAIL')
     password_app = os.getenv('PASSWORD')
 
     if not remitente or not password_app:
-        print("Error: No se configuraron las credenciales de correo en el .env")
+        print("Error: credenciales de correo no configuradas")
         return False
 
     msg = MIMEMultipart()
@@ -131,17 +132,32 @@ def enviar_correo_credenciales(correo_destino, nombre, usuario_gen, password_gen
     msg.attach(MIMEText(cuerpo_html, 'html'))
 
     try:
-        # Nos conectamos a los servidores de Google para enviar el correo
         server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls() # Modo seguro
+        server.starttls()
         server.login(remitente, password_app)
         server.send_message(msg)
         server.quit()
+        print(f"[OK] Correo enviado a {correo_destino}")
         return True
     except Exception as e:
-        print(f"Error enviando correo: {e}")
+        print(f"[ERROR] enviando correo: {e}")
         return False
-
+# ==========================================
+# ENVÍO EN SEGUNDO PLANO (Hilo de Correo)
+# ==========================================
+def enviar_correo_async(correo, nombre, usuario, password):
+    try:
+        hilo = threading.Thread(
+            target=enviar_correo_credenciales,
+            args=(correo, nombre, usuario, password)
+        )
+        hilo.daemon = True
+        hilo.start()
+        print(f"[INFO] Hilo correo iniciado para {correo}")
+    except Exception as e:
+        print(f"[ERROR] hilo correo: {e}")
+                
+#============== T A B L A S ===============
 def inicializar_tabla_lotes():
     """Crea la tabla LOTES si no existe."""
     conn = None
@@ -354,19 +370,12 @@ def admin():
     flash('Acceso denegado. Permisos de administrador requeridos.')
     return redirect(url_for('index'))
 
-@app.route('/agregar_usuario', methods=['POST'])
-def agregar_usuario():
-    if 'usuario' not in session or session['rol'] != 'admin':
+@app.route('/restaurar_password/<int:id>', methods=['POST'])
+def restaurar_password(id):
+    if 'usuario' not in session or session.get('rol') != 'admin':
         flash('Acceso denegado.')
         return redirect(url_for('index'))
 
-    nombre = request.form['nombre']
-    rol = request.form['rol']
-    estudios = request.form['estudios']
-    correo = request.form['correo']
-
-    num_aleatorio = random.randint(1000, 9999)
-    nuevo_usuario = f"U-{num_aleatorio}"
     nueva_password = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
 
     conn = None
@@ -374,27 +383,27 @@ def agregar_usuario():
         conn = obtener_conexion()
         cursor = conn.cursor()
 
-        cursor.execute('''
-            INSERT INTO USUARIOS (usuario, password, nombre, rol, estudios, correo)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (nuevo_usuario, nueva_password, nombre, rol, estudios, correo))
+        cursor.execute('SELECT usuario, nombre, correo FROM USUARIOS WHERE id = %s', (id,))
+        user = cursor.fetchone()
 
-        conn.commit()
+        if user:
+            usuario_bd, nombre_bd, correo_bd = user
+
+            cursor.execute('UPDATE USUARIOS SET password = %s WHERE id = %s', (nueva_password, id))
+            conn.commit()
+
+            if correo_bd:
+                enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
+                flash('🔑 Contraseña restaurada. El correo se enviará en breve.')
+            else:
+                flash(f'⚠️ Sin correo. Nueva contraseña: {nueva_password}')
+
         cursor.close()
-        
-        correo_enviado = enviar_correo_credenciales(correo, nombre, nuevo_usuario, nueva_password)
-        
-        if correo_enviado:
-            flash(f'✅ Usuario {nuevo_usuario} creado. Las credenciales se han enviado a {correo}.')
-        else:
-            flash(f'⚠️ Usuario {nuevo_usuario} creado, pero hubo un error al enviar el correo. Contraseña generada: {nueva_password}')
 
-    except psycopg2.IntegrityError:
-        flash('❌ Error: El usuario o correo ya existe en el sistema.')
     except Exception as e:
-        flash(f'❌ Error de base de datos: {e}')
+        flash(f'❌ Error: {e}')
     finally:
-        if conn is not None:
+        if conn:
             conn.close()
 
     return redirect(url_for('admin'))
@@ -452,12 +461,10 @@ def restaurar_password(id):
             conn.commit()
 
             if correo_bd:
-                correo_enviado = enviar_correo_credenciales(correo_bd, nombre_bd, usuario_bd, nueva_password)
-                if correo_enviado:
-                    flash(f'🔑 Contraseña restaurada con éxito. Se ha enviado un correo a {correo_bd}.')
+                if correo_bd:
+                enviar_correo_async(correo_bd, nombre_bd, usuario_bd, nueva_password)
+                flash(f'🔑 Contraseña restaurada correctamente. El correo se enviará en breve.')
                 else:
-                    flash(f'⚠️ Contraseña restaurada, pero falló el envío del correo. NUEVA CONTRASEÑA: {nueva_password}')
-            else:
                 flash(f'⚠️ Contraseña restaurada. El usuario no tiene correo. NUEVA CONTRASEÑA: {nueva_password}')
 
         cursor.close()
@@ -847,4 +854,4 @@ def api_lotes():
 # EJECUCIÓN DEL SERVIDOR
 # ==========================================
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
