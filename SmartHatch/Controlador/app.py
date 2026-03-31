@@ -413,6 +413,26 @@ def agregar_usuario():
 
     return redirect(url_for('admin'))
 
+
+@app.route('/editar_usuario/<int:id>', methods=['POST'])
+def editar_usuario(id):
+    if 'usuario' not in session or session['rol'] != 'admin': return redirect(url_for('index'))
+    
+    nombre, rol, estudios, correo = request.form['nombre'], request.form['rol'], request.form['estudios'], request.form['correo']
+    conn = obtener_conexion()
+    if not conn: return redirect(url_for('admin'))
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute('UPDATE USUARIOS SET nombre=%s, rol=%s, estudios=%s, correo=%s WHERE id=%s', (nombre, rol, estudios, correo, id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        registrar_accion(session['nombre'], f"Editó usuario ID {id}")
+        flash('Usuario actualizado.', 'success')
+    except Exception as e: flash(f'Error: {e}', 'error')
+    return redirect(url_for('admin'))
+
 @app.route('/eliminar_usuario/<int:id>', methods=['POST'])
 def eliminar_usuario(id):
     if 'usuario' not in session or session.get('rol') != 'admin':
