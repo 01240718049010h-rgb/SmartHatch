@@ -580,7 +580,9 @@ def api_sensores():
     finally:
         if conn is not None:
             conn.close()
-
+                    
+# EL ESP32 CONSULTA EL HISTORIAL DE LOS SENSORES
+# -------------------------------------------------------------------
 @app.route('/api/esp32/sensores', methods=['POST'])
 def recibir_sensores_esp32():
     datos = request.get_json()
@@ -703,6 +705,61 @@ def api_actuadores():
             return jsonify({'success': True, 'actuador': actuador, 'valor': valor})
             
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn is not None:
+            conn.close()
+
+# EL ESP32 CONSULTA EL ESTADO DE LOS BOTONES DE LA WEB (GET)
+# -------------------------------------------------------------------
+@app.route('/api/estado_actuadores', methods=['GET'])
+def api_estado_actuadores():
+    # Aquí NO pedimos login porque es el ESP32 quien consulta
+    conn = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+        # Leemos el estado actual de los botones en la base de datos
+        cursor.execute('SELECT foco_forzado, foco_estado, volteo_remoto FROM CONTROL_ACTUADORES ORDER BY id DESC LIMIT 1')
+        row = cursor.fetchone()
+        cursor.close()
+
+        if row:
+            return jsonify({
+                'foco_forzado': int(row['foco_forzado']),
+                'foco_estado': int(row['foco_estado']),
+                'volteo_remoto': int(row['volteo_remoto'])
+            }), 200
+        
+        # Valores por defecto de seguridad si la tabla está vacía
+        return jsonify({'foco_forzado': 0, 'foco_estado': 0, 'volteo_remoto': 0}), 200
+
+    except Exception as e:
+        print(f"Error al enviar estado a ESP32: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn is not None:
+            conn.close()
+
+# EL ESP32 AVISA QUE YA GIRÓ EL MOTOR Y RESETEA EL BOTÓN (POST)
+@app.route('/api/reset_volteo', methods=['POST'])
+def api_reset_volteo():
+    # Esta ruta es vital: Cuando el investigador da clic en "Voltear", 
+    # el ESP32 lo hace y luego llama aquí para regresar el botón a 0.
+    conn = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        
+        # Actualizamos todos los registros de control poniendo el volteo a 0
+        cursor.execute('UPDATE CONTROL_ACTUADORES SET volteo_remoto = 0')
+        conn.commit()
+        cursor.close()
+        
+        return jsonify({'success': True, 'mensaje': 'Volteo remoto reseteado a 0'}), 200
+    except Exception as e:
+        print(f"Error al resetear volteo: {e}")
         return jsonify({'error': str(e)}), 500
     finally:
         if conn is not None:
