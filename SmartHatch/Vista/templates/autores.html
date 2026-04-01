@@ -79,12 +79,11 @@
             background-color: #e0e0e0;
             border-radius: 50%;
             margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: #999;
-            /* Si tienes fotos, cambia background-color por: background-image: url('tu-foto.jpg'); background-size: cover; */
+            /* Ajustes para mostrar la foto real correctamente */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra sutil para que resalte la foto */
         }
 
         .autor-card h3 {
@@ -154,7 +153,7 @@
 
         <div class="autores-grid">
             <div class="autor-card">
-                <div class="avatar">👨‍💻</div>
+                <div class="avatar" style="background-image: url('{{ url_for('static', filename='img/Avatar_FromIsaac.jpeg') }}');"></div>
                 <h3>Isaac Kob Tec</h3>
                 <p class="rol">Desarrollador Full Stack & Backend Hardware</p>
                 <p class="bio">Encargado de la arquitectura de la base de datos, dinamismo de JavaScript, experiencia de usuario y programación en
@@ -166,10 +165,10 @@
             </div>
 
             <div class="autor-card">
-                <div class="avatar">👩‍💻</div>
+                <div class="avatar" style="background-image: url('{{ url_for('static', filename='img/Avatar_FromFranklin.jpeg') }}');"></div>
                 <h3>Franklin Mendez Dzul</h3>
                 <p class="rol">Desarrollador Frontend & UI/UX</p>
-                <p class="bio">Responsable del diseño de interfaces, integración de los componentes sensoriales y actuadores y vinuclación de app movil.</p>
+                <p class="bio">Responsable del diseño de interfaces, integración de los componentes sensoriales y actuadores y vinculación de app móvil.</p>
                 <div class="social-links">
                     <a href="https://www.instagram.com/mdz.fa?igsh=eWd6Nno1c3FyZ2o4&utm_source=qr" target="_blank">Instagram</a>
                     <a href="hackeada" target="_blank">LinkedIn</a>
