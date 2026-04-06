@@ -208,6 +208,32 @@ def inicializar_tabla_actuadores():
         if conn is not None:
             conn.close()
 
+def inicializar_tabla_control_actuadores():
+    """Crea la tabla CONTROL_ACTUADORES con valores por defecto."""
+    conn = None
+    try:
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS CONTROL_ACTUADORES (
+                id SERIAL PRIMARY KEY,
+                foco_forzado INTEGER DEFAULT 0,
+                foco_estado INTEGER DEFAULT 0,
+                volteo_remoto INTEGER DEFAULT 0
+            )
+        ''')
+        # Insertamos un registro inicial para que el ESP32 siempre tenga algo que leer
+        cursor.execute("SELECT COUNT(*) FROM CONTROL_ACTUADORES")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("INSERT INTO CONTROL_ACTUADORES (foco_forzado, foco_estado, volteo_remoto) VALUES (0, 0, 0)")
+        conn.commit()
+        cursor.close()
+    except Exception as e:
+        print(f"Error al crear tabla CONTROL_ACTUADORES: {e}")
+    finally:
+        if conn is not None:
+            conn.close()
+
 def inicializar_tabla_acciones():
     """Crea la tabla HISTORIAL_ACCIONES si no existe."""
     conn = None
@@ -251,6 +277,7 @@ def registrar_accion(usuario, accion):
 inicializar_tabla_lotes()
 inicializar_tabla_actuadores()
 inicializar_tabla_acciones()
+inicializar_tabla_control_actuadores()
 
 # ==========================================
 # RUTAS DE AUTENTICACIÓN
