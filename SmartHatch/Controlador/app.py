@@ -757,10 +757,10 @@ def api_estado_actuadores():
                 'foco_forzado': int(row['foco_forzado']),
                 'foco_estado': int(row['foco_estado']),
                 'ventilador_forzado': int(row['ventilador_forzado']),
-                'volteo_remoto': int(row['volteo_remoto'])
+                'volteo_remoto': int(row['volteo_remoto']),
 
                 'temperatura': float(ultimo_clima['temperatura']),
-                'humedad': float(ultimo_clima['humedad'])
+                'humedad': float(ultimo_clima['humedad']),
 
             }), 200
         
