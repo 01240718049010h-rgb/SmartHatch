@@ -756,11 +756,16 @@ def api_estado_actuadores():
             return jsonify({
                 'foco_forzado': int(row['foco_forzado']),
                 'foco_estado': int(row['foco_estado']),
+                'ventilador_forzado': int(row['ventilador_forzado']),
                 'volteo_remoto': int(row['volteo_remoto'])
+
+                'temperatura': float(ultimo_clima['temperatura']),
+                'humedad': float(ultimo_clima['humedad'])
+
             }), 200
         
         # Valores por defecto de seguridad si la tabla está vacía
-        return jsonify({'foco_forzado': 0, 'foco_estado': 0, 'volteo_remoto': 0}), 200
+        return jsonify({'foco_forzado': 0, 'foco_estado': 0, 'ventilador_forzado':0, 'volteo_remoto': 0}), 200
 
     except Exception as e:
         print(f"Error al enviar estado a ESP32: {e}")
