@@ -219,13 +219,13 @@ def inicializar_tabla_control_actuadores():
                 id SERIAL PRIMARY KEY,
                 foco_forzado INTEGER DEFAULT 0,
                 foco_estado INTEGER DEFAULT 0,
+                ventilador_forzado INTEGER DEFAULT 0,
                 volteo_remoto INTEGER DEFAULT 0
             )
         ''')
-        # Insertamos un registro inicial para que el ESP32 siempre tenga algo que leer
         cursor.execute("SELECT COUNT(*) FROM CONTROL_ACTUADORES")
         if cursor.fetchone()[0] == 0:
-            cursor.execute("INSERT INTO CONTROL_ACTUADORES (foco_forzado, foco_estado, volteo_remoto) VALUES (0, 0, 0)")
+            cursor.execute("INSERT INTO CONTROL_ACTUADORES (foco_forzado, foco_estado, ventilador_forzado, volteo_remoto) VALUES (0, 0, 0, 0)")
         conn.commit()
         cursor.close()
     except Exception as e:
